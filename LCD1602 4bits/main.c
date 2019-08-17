@@ -309,12 +309,8 @@ int LCD1602_PrintF(unsigned char* cadena,unsigned char columna, unsigned char fi
 
     va_list ap; //crea puntero de los argumentos
     unsigned int conteoS=0;
-    unsigned int valorARGui; //variable donde guardara el valor del argumento
     unsigned char valorARGuc; //variable donde guardara el valor del argumento
-    int valorARGi; //variable donde guardara el valor del argumento
     unsigned char* valorARGc; //variable donde guardara el valor del argumento
-    float valorARGf; //variable donde guardara el valor del argumento
-    double valorARGd; //variable donde guardara el valor del argumento
     va_start(ap, fila);//maneja la memoria de los argumentos empezado desde el ultimo
     LCD1602_Pos(columna,fila); //indica la posicion inicial del cursor
     while(*cadena)// realiza el ciclo minetras la cadena tenga algun valor
@@ -355,27 +351,22 @@ int LCD1602_PrintF(unsigned char* cadena,unsigned char columna, unsigned char fi
                 {
                     case 'd':
                     case 'i':
-                        valorARGi=va_arg(ap, int);
                         //convertir el numero a cadena
                         //mandar imprimir la cadena
                         break;
                     case 'u':
-                        valorARGui=va_arg(ap, unsigned int);
                         //convertir el numero a cadena
                         //mandar imprimir la cadena
                         break;
                     case 'x':
-                        valorARGui=va_arg(ap, unsigned int);
                         //convertir el numero a cadena
                         //mandar imprimir la cadena en minusculas
                         break;
                     case 'X':
-                        valorARGui=va_arg(ap, unsigned int);
                         //convertir el numero a cadena
                         //mandar imprimir la cadena en mayusculas
                         break;
                     case 'f':
-                        valorARGf=va_arg(ap, float);
                         //convertir el numero a cadena
                         //mandar imprimir la cadena en mayusculas
                         break;
@@ -383,7 +374,6 @@ int LCD1602_PrintF(unsigned char* cadena,unsigned char columna, unsigned char fi
                         cadena++;
                         if(*cadena=='f')
                         {
-                        valorARGd=va_arg(ap, double);
                         //convertir el numero a cadena
                         //mandar imprimir la cadena en mayusculas
                         }
