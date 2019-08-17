@@ -27,7 +27,8 @@ unsigned char Dibujar=0;
 
 void Init_Enemigos(void)
 {
-    for(unsigned char i=0; i<1 ; i++)
+    unsigned char i=0;
+    for(i=0; i<1 ; i++)
     {
     	Enemigos[i].x=i*20;
     	Enemigos[i].y=ENEMY10H-1;
@@ -48,7 +49,8 @@ void Mover_Nave(unsigned char pos)
 
 void Mover_Enemigos(void)
 {
-    for(unsigned char i=0; i<1 ; i++)
+    unsigned char i=0;
+    for(i=0; i<1 ; i++)
     {
     	if(Enemigos[i].x<(MAX_X-ENEMY10H-1))
     		Enemigos[i].x+=2;
@@ -60,8 +62,9 @@ void Mover_Enemigos(void)
 void Dibujar_Enemigos(void)
 {
 	static unsigned char Movimiento=0;
+	unsigned char i=0;
     LCD_LimpiarBuffer();
-    for(unsigned char i=0; i<1 ; i++)
+    for(i=0; i<1 ; i++)
     {
     	if(Enemigos[i].vida>0)
     		LCD_BMP(Enemigos[i].x,Enemigos[i].y,Enemigos[i].Imagen[Movimiento],0);
