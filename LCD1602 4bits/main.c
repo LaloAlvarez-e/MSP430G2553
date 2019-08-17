@@ -1,5 +1,6 @@
 #include <main.h>
 
+
 void Conf_Reloj(void)
 {
     DCOCTL=CALDCO_16MHZ;
@@ -26,29 +27,65 @@ void Conf_Reloj(void)
 void Conf_LCD1602(void)
 {
     long Delay=0;
-     /*Conf para P2.0=RS P2.1=RW P2.2=E*/
-    P2DIR|=RS|RW|E;
-    P2SEL&=~(RS|RW|E);
-    P2SEL2&=~(RS|RW|E);
-    P2REN&=~(RS|RW|E);
-    P2OUT&=~(RS|RW|E);
+     /*Conf para P1.0=RS P1.1=RW P1.2=E*/
+    E_DIR|=E;
+    E_OUT&=~E;
+    E_REN&=~E;
+    E_SEL&=~E;
+    E_SEL2&=~E;
 
-    /*Conf para P1=Datos D0-D7*/
-    P1DIR=0xFF;
-    P1SEL=0;
-    P1SEL2=0;
-    P1REN=0;
-    P1OUT=0;
+    RS_DIR |=RS;
+    RS_OUT &=~RS;
+    RS_REN &=~RS;
+    RS_SEL &=~RS;
+    RS_SEL2&=~RS;
+
+    RW_DIR|=RW;
+    RW_OUT&=~RW;
+    RW_REN&=~RW;
+    RW_SEL&=~RW;
+    RW_SEL2&=~RW;
+
+    /*Conf para Datos D4-D7*/
+    D4_DIR|=D4;
+    D4_OUT&=~D4;
+    D4_REN&=~D4;
+    D4_SEL&=~D4;
+    D4_SEL2&=~D4;
+
+    D5_DIR|=D5;
+    D5_OUT&=~D5;
+    D5_REN&=~D5;
+    D5_SEL&=~D5;
+    D5_SEL2&=~D5;
+
+    D6_DIR|=D6;
+    D6_OUT&=~D6;
+    D6_REN&=~D6;
+    D6_SEL&=~D6;
+    D6_SEL2&=~D6;
+
+    D7_DIR|=D7;
+    D7_OUT&=~D7;
+    D7_REN&=~D7;
+    D7_SEL&=~D7;
+    D7_SEL2&=~D7;
+
     for(Delay=30000; Delay>0; Delay--);//20 ms aprox a 16MHz
-    P1OUT|=D4|D5;//configurar lapantalla a 8 bits
+    //manda 0x3 en la parte alta de la LCD
+    D4_OUT|=D4;
+    D5_OUT|=D5;
     LCD1602_E(); //manda un pulso en el pin E (Enable)
     for(Delay=10000; Delay>0; Delay--);//7 ms aprox a 16MHz
+
     LCD1602_E(); //manda un pulso en el pin E (Enable)
     for(Delay=500; Delay>0; Delay--);//100 us aprox a 16MHz
+
     LCD1602_E(); //manda un pulso en el pin E (Enable)
     for(Delay=10000; Delay>0; Delay--);//7 ms aprox a 16MHz
+
     //primer comando 0x20 configuracion a 4 bits
-    P1OUT&=~D4; //conf para los pines D4-7 = P1.4-7
+    D4_OUT&=~D4; //conf para los pines D4-7 = P1.4-7
     LCD1602_E(); //manda un pulso en el pin E (Enable)
     for(Delay=240; Delay>0; Delay--);//40 us aprox a 16MHz
 
@@ -71,92 +108,192 @@ void Conf_LCD1602(void)
 
 void LCD1602_Com(char comando)
 {
-    /*D4-7=P1.4-7*/
     unsigned char Delay=0;
-    unsigned char valor=P1IN&0xF0; //guarda el valor anterior de P1OUT
-    PRW&=~RW; //RW para escritura 1=lectura 0=escritura
-    PRS&=~RS; //RS 1=dato 0=comando
+    unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
+    unsigned char valorRW=0, valorRS=0;
+    //guarda los valores anterior de los pines, en caso que se compartan con otras cosas
+    valorD4=D4_IN & D4;
+    valorD5=D5_IN & D5;
+    valorD6=D6_IN & D6;
+    valorD7=D7_IN & D7;
+    valorRW=RW_IN & RW;
+    valorRS=RS_IN & RS;
 
-    P1OUT&=~0xF0; //reinicia los pines P1.4-7
-    P1OUT|=(comando)&0xF0; //manda la parte alta del comando
+    RW_OUT&=~RW; //RW para escritura 1=lectura 0=escritura
+    RS_OUT&=~RS; //RS 1=dato 0=comando
+
+
+    //D7_OUT&=~D7;
+    //D7_OUT|=((comando&0x80)&&1)<<D7_POS;
+    //D6_OUT&=~D6;
+    //D6_OUT|=((comando&0x40)&&1)<<D6_POS;
+    //D5_OUT&=~D5;
+    //D5_OUT|=((comando&0x20)&&1)<<D5_POS;
+    //D4_OUT&=~D4;
+    //D4_OUT|=((comando&0x10)&&1)<<D4_POS;
+    if(comando&0x80)
+        D7_OUT|=D7;
+    else
+        D7_OUT&=~D7;
+
+    if(comando&0x40)
+        D6_OUT|=D6;
+    else
+        D6_OUT&=~D6;
+
+    if(comando&0x20)
+        D5_OUT|=D5;
+    else
+        D5_OUT&=~D5;
+
+    if(comando&0x10)
+        D4_OUT|=D4;
+    else
+        D4_OUT&=~D4;
     LCD1602_E(); //manda un pulso en el pin E (Enable)
-    P1OUT&=~0xF0; //reinicia los pines P1.4-7
-    P1OUT|=(comando<<4)&0xF0; //manda la parte baja del comando
+
+    //D7_OUT&=~D7;
+    //D7_OUT|=((comando&0x8)&&1)<<D7_POS;
+    //D6_OUT&=~D6;
+    //D6_OUT|=((comando&0x4)&&1)<<D6_POS;
+    //D5_OUT&=~D5;
+    //D5_OUT|=((comando&0x2)&&1)<<D5_POS;
+    //D4_OUT&=~D4;
+    //D4_OUT|=((comando&0x1)&&1)<<D4_POS;
+
+    if(comando&0x8)
+        D7_OUT|=D7;
+    else
+        D7_OUT&=~D7;
+
+    if(comando&0x4)
+        D6_OUT|=D6;
+    else
+        D6_OUT&=~D6;
+
+    if(comando&0x2)
+        D5_OUT|=D5;
+    else
+        D5_OUT&=~D5;
+
+    if(comando&0x1)
+        D4_OUT|=D4;
+    else
+        D4_OUT&=~D4;
     LCD1602_E(); //manda un pulso en el pin E (Enable)
-    for(Delay=240; Delay>0; Delay--);//40 us aprox a 16MHz
+    for(Delay=150; Delay>0; Delay--);//40 us aprox a 16MHz
 
-    P1OUT&=~0xF0; //reinicia los la parte alta
-    P1OUT|=valor; //restaura el valor anterior
 
-    /*D4-7=P1.0-3*/
-    /*
-    unsigned char Delay=0;
-    unsigned char valor=P1IN&0xF; //guarda el valor anterior de la parte baja de P1OUT
-    PRW&=~RW; //RW para escritura 1=lectura 0=escritura
-    PRS&=~RS; //RS 1=dato 0=comando
-
-    P1OUT&=~0xF; //reinicia los pines P1.0-3
-    P1OUT|=(comando>>4)&0xF; //manda la parte alta del comando
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
-    P1OUT&=~0xF; //reinicia los pines P1.0-3
-    P1OUT|=(comando)&0xF; //manda la parte baja del comando
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
-    for(Delay=240; Delay>0; Delay--);//40 us aprox a 16MHz
-
-    P1OUT&=~0xF; //reinicia la parte baja del P1
-    P1OUT|=valor; //restaura el valor anterior
-    */
+    D4_OUT&=~D4;//reinicia los bits
+    D5_OUT&=~D5;
+    D6_OUT&=~D6;
+    D7_OUT&=~D7;
+    RS_OUT&=~RS;
+    RW_OUT&=~RW;
+    D4_OUT|=valorD4; //restaura el valor anterior
+    D5_OUT|=valorD5;
+    D6_OUT|=valorD6;
+    D7_OUT|=valorD7;
+    RS_OUT|=valorRS;
+    RW_OUT|=valorRW;
 }
 void LCD1602_Dato(char dato)
 {
-   /* D4-7=P1.4-7*/
-   unsigned char Delay=0;
-   unsigned char valor=P1IN&0xF0; //guarda el valor anterior de P1OUT
-
-    PRW&=~RW; //RW para escritura 1=lectura0=escritura
-    PRS|=RS; //RS 1=dato 0=comando
-
-    P1OUT&=~0xF0; //reinicia los valores de P1.4-7
-    P1OUT|=(dato)&0xF0; //manda la parte alta del dato
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
-    P1OUT&=~0xF0;//reinicia los valores de P1.4-7
-    P1OUT|=(dato<<4)&0xF0;  //manda la parte baja del dato
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
-    for(Delay=240; Delay>0; Delay--);//40 us aprox a 16MHz
-
-    P1OUT&=~0xF0;//reinicia los valores de P1.4-7
-    P1OUT|=valor; //restarua el valor anterior
-
-    /*D4-7 =P1.0-3*/
-    /*
     unsigned char Delay=0;
-    unsigned char valor=P1IN&0xF; //guarda el valor anterior de P1OUT
+    unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
+    unsigned char valorRW=0, valorRS=0;
+    //guarda los valores anterior de los pines, en caso que se compartan con otras cosas
+    valorD4=D4_IN & D4;
+    valorD5=D5_IN & D5;
+    valorD6=D6_IN & D6;
+    valorD7=D7_IN & D7;
+    valorRW=RW_IN & RW;
+    valorRS=RS_IN & RS;
 
-     PRW&=~RW; //RW para escritura 1=lectura0=escritura
-     PRS|=RS; //RS 1=dato 0=comando
+    RW_OUT&=~RW; //RW para escritura 1=lectura 0=escritura
+    RS_OUT|=RS; //RS 1=dato 0=comando
 
-     P1OUT&=~0xF; //reinicia P1.0-3
-     P1OUT|=(dato>>4)&0xF; //manda el comando necesario
-     LCD1602_E(); //manda un pulso en el pin E (Enable)
-     P1OUT&=~0xF; //reinicia P1.0-3
-     P1OUT|=(dato)&0xF; //manda el comando necesario
-     LCD1602_E(); //manda un pulso en el pin E (Enable)
-     for(Delay=240; Delay>0; Delay--);//40 us aprox a 16MHz
 
-     P1OUT&=~0xF; //reinicia P1.0-3
-     P1OUT|=valor; //restarua el valor anterior
-*/
+    //D7_OUT&=~D7;
+    //D7_OUT|=((dato&0x80)&&1)<<D7_POS;
+    //D6_OUT&=~D6;
+    //D6_OUT|=((dato&0x40)&&1)<<D6_POS;
+    //D5_OUT&=~D5;
+    //D5_OUT|=((dato&0x20)&&1)<<D5_POS;
+    //D4_OUT&=~D4;
+    //D4_OUT|=((dato&0x10)&&1)<<D4_POS;
+    if(dato&0x80)
+        D7_OUT|=D7;
+    else
+        D7_OUT&=~D7;
+
+    if(dato&0x40)
+        D6_OUT|=D6;
+    else
+        D6_OUT&=~D6;
+
+    if(dato&0x20)
+        D5_OUT|=D5;
+    else
+        D5_OUT&=~D5;
+
+    if(dato&0x10)
+        D4_OUT|=D4;
+    else
+        D4_OUT&=~D4;
+    LCD1602_E(); //manda un pulso en el pin E (Enable)
+
+    //D7_OUT&=~D7;
+    //D7_OUT|=((dato&0x8)&&1)<<D7_POS;
+    //D6_OUT&=~D6;
+    //D6_OUT|=((dato&0x4)&&1)<<D6_POS;
+    //D5_OUT&=~D5;
+    //D5_OUT|=((dato&0x2)&&1)<<D5_POS;
+    //D4_OUT&=~D4;
+    //D4_OUT|=((dato&0x1)&&1)<<D4_POS;
+
+    if(dato&0x8)
+        D7_OUT|=D7;
+    else
+        D7_OUT&=~D7;
+
+    if(dato&0x4)
+        D6_OUT|=D6;
+    else
+        D6_OUT&=~D6;
+
+    if(dato&0x2)
+        D5_OUT|=D5;
+    else
+        D5_OUT&=~D5;
+
+    if(dato&0x1)
+        D4_OUT|=D4;
+    else
+        D4_OUT&=~D4;
+    LCD1602_E(); //manda un pulso en el pin E (Enable)
+    for(Delay=150; Delay>0; Delay--);//40 us aprox a 16MHz
+
+
+    D4_OUT&=~D4;//reinicia los bits
+    D5_OUT&=~D5;
+    D6_OUT&=~D6;
+    D7_OUT&=~D7;
+    RS_OUT&=~RS;
+    RW_OUT&=~RW;
+    D4_OUT|=valorD4; //restaura el valor anterior
+    D5_OUT|=valorD5;
+    D6_OUT|=valorD6;
+    D7_OUT|=valorD7;
+    RS_OUT|=valorRS;
+    RW_OUT|=valorRW;
 }
 void LCD1602_E(void)
 {
-    long Delay=0;
-    PE|=E; //manda a 1 logico el bit E (Enable)
-    /*Aprox 600ns a 16MHz*/
-    for(Delay=8; Delay>0; Delay--); //retardo necesario para que la pantalla lea el dato
-    PE&=~E;//manda a 0 logico E, completando el pulso
-    /*Aprox 600ns a 16MHz*/
-    for(Delay=8; Delay>0; Delay--);    //retardo final
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
+    E_OUT&=~E;//manda a 0 logico E, completando el pulso
 }
+
 void LCD1602_Pos(char columna, char fila)
 {
     long direccion=0x80;
@@ -170,22 +307,29 @@ void LCD1602_Pos(char columna, char fila)
  */
 void main(void)
 {
-
-    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
-    Conf_Reloj(); //conf de reloj 16 MHz, SMCLK y MCLK
-    //4 bits , 2 lineas, 5x8 puntos, incr cursor
-    Conf_LCD1602();//configuracion de la pantall LCD1602
-    LCD1602_Pos(4,1);
-    LCD1602_Dato('I'); //escribe H en 0,0. Cursor 0,1
-    LCD1602_Dato('n');
-    LCD1602_Dato('D'); //escribe H en 0,0. Cursor 0,1
-    LCD1602_Dato('e');
-    LCD1602_Dato('v');
-    LCD1602_Dato('i');
-    LCD1602_Dato('c');
-    LCD1602_Dato('e');
-    while(1)
-    {
-
-    }
+       WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
+       Conf_Reloj(); //conf de reloj 16 MHz, SMCLK y MCLK
+       //4 bits , 2 lineas, 5x8 puntos, incr cursor
+       Conf_LCD1602();//configuracion de la pantalla LCD1602
+       LCD1602_Pos(3,0);
+       LCD1602_Dato('H');
+       LCD1602_Dato('O');
+       LCD1602_Dato('L');
+       LCD1602_Dato('A');
+       LCD1602_Dato(' ');
+       LCD1602_Dato('M');
+       LCD1602_Dato('U');
+       LCD1602_Dato('N');
+       LCD1602_Dato('D');
+       LCD1602_Dato('O');
+       LCD1602_Pos(4,1);
+       LCD1602_Dato('I'); //escribe H en 0,0. Cursor 0,1
+       LCD1602_Dato('n');
+       LCD1602_Dato('D'); //escribe H en 0,0. Cursor 0,1
+       LCD1602_Dato('e');
+       LCD1602_Dato('v');
+       LCD1602_Dato('i');
+       LCD1602_Dato('c');
+       LCD1602_Dato('e');
+       while(1);
 }
