@@ -303,8 +303,176 @@ void LCD1602_Pos(char columna, char fila)
 }
 
 
+int LCD1602_PrintF(unsigned char* cadena,unsigned char columna, unsigned char fila,...)
+{
+    int conteo=0;//variable usada para saber cuentos caracteres se imprimieron
 
-int LCD1602_Cadena(unsigned char* cadena,unsigned char* columna, unsigned char* fila)
+    va_list ap; //crea puntero de los argumentos
+    unsigned int conteoS=0;
+    unsigned int valorARGui; //variable donde guardara el valor del argumento
+    unsigned char valorARGuc; //variable donde guardara el valor del argumento
+    int valorARGi; //variable donde guardara el valor del argumento
+    unsigned char* valorARGc; //variable donde guardara el valor del argumento
+    float valorARGf; //variable donde guardara el valor del argumento
+    double valorARGd; //variable donde guardara el valor del argumento
+    va_start(ap, fila);//maneja la memoria de los argumentos empezado desde el ultimo
+    LCD1602_Pos(columna,fila); //indica la posicion inicial del cursor
+    while(*cadena)// realiza el ciclo minetras la cadena tenga algun valor
+        //el valor 0 o '\0' es fin de cadena
+    {
+        switch (*cadena) //deteca si existe un caracter especial
+        {
+            case '\n': //salto de linea sin retorno de carro
+                if((columna&0xF)!=0) //observa si la columna no se encuentra en el limite de las columnas
+                {
+                    columna-=1;
+                    fila^=1; //si la columna actual esta entre 1 y 15 cambia de fila
+                    LCD1602_Pos(columna,fila); //actualiza la posicion
+                }
+                break;
+
+            case '\r': //retorno de carro
+                columna=0; //actualiza el valor de la columna a la primera posicion
+                LCD1602_Pos(columna,fila); //actualiza la posicion
+                break;
+            case '\t': //tabulacion
+                columna+=3; //aumenta 3 espacios vacios
+                if(columna>15) //trunca la tabulacion si se ha exedido del limite
+                    columna=15;
+                LCD1602_Pos(columna,fila); //actualiza la posicion
+                break;
+            case '\\':
+                //crear la fuente para '\' no existe en la ROM precargada
+                break;
+            case '\b': //retroceso
+                if((columna&0xF)!=0) //si la columna es diferente a 0 puede retroceder
+                    columna--;
+                LCD1602_Pos(columna,fila); //actualiza la posicion
+                break;
+            case '%':
+                cadena++;
+                switch(*cadena)
+                {
+                    case 'd':
+                    case 'i':
+                        valorARGi=va_arg(ap, int);
+                        //convertir el numero a cadena
+                        //mandar imprimir la cadena
+                        break;
+                    case 'u':
+                        valorARGui=va_arg(ap, unsigned int);
+                        //convertir el numero a cadena
+                        //mandar imprimir la cadena
+                        break;
+                    case 'x':
+                        valorARGui=va_arg(ap, unsigned int);
+                        //convertir el numero a cadena
+                        //mandar imprimir la cadena en minusculas
+                        break;
+                    case 'X':
+                        valorARGui=va_arg(ap, unsigned int);
+                        //convertir el numero a cadena
+                        //mandar imprimir la cadena en mayusculas
+                        break;
+                    case 'f':
+                        valorARGf=va_arg(ap, float);
+                        //convertir el numero a cadena
+                        //mandar imprimir la cadena en mayusculas
+                        break;
+                    case 'l':
+                        cadena++;
+                        if(*cadena=='f')
+                        {
+                        valorARGd=va_arg(ap, double);
+                        //convertir el numero a cadena
+                        //mandar imprimir la cadena en mayusculas
+                        }
+                        else
+                        {
+                            LCD1602_Dato('%');
+                            columna++; //suma 1 a la columna indicando que se ha escrito un valor
+                            if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                            {
+                                fila^=1; //invierte el valor e fila para que se reinciie
+                                LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                            }
+                            LCD1602_Dato('l');
+                            columna++; //suma 1 a la columna indicando que se ha escrito un valor
+                            if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                            {
+                                fila^=1; //invierte el valor e fila para que se reinciie
+                                LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                            }
+                            LCD1602_Dato(*cadena);
+                            columna++; //suma 1 a la columna indicando que se ha escrito un valor
+                            if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                            {
+                                fila^=1; //invierte el valor e fila para que se reinciie
+                                LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                            }
+                        }
+                        break;
+                    case 'c':
+                        valorARGuc=va_arg(ap, unsigned char);
+                        LCD1602_Dato(valorARGuc);
+                        columna++; //suma 1 a la columna indicando que se ha escrito un valor
+                        if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                        {
+                            fila^=1; //invierte el valor e fila para que se reinciie
+                            LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                        }
+                        break;
+                    case 's':
+                        valorARGc=va_arg(ap, unsigned char*);
+                        conteoS=LCD1602_Print(valorARGc,columna,fila);
+                        columna+=conteoS;
+                        conteo+=conteoS-1;
+                       // if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                       // {
+                        //    fila^=1; //invierte el valor e fila para que se reinciie
+                         //   LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                        //}
+                        //mando imprimir la cadena
+                        break;
+                    default:
+                        LCD1602_Dato('%');
+                        columna++; //suma 1 a la columna indicando que se ha escrito un valor
+                        if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                        {
+                            fila^=1; //invierte el valor e fila para que se reinciie
+                            LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                        }
+                        LCD1602_Dato(*cadena);
+                        columna++; //suma 1 a la columna indicando que se ha escrito un valor
+                        if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                        {
+                            fila^=1; //invierte el valor e fila para que se reinciie
+                            LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                        }
+                        break;
+
+               }
+                break;
+            default:
+                LCD1602_Dato(*(cadena)); //envia el caracter correspondiente
+                columna++; //suma 1 a la columna indicando que se ha escrito un valor
+                if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+                {
+                    fila^=1; //invierte el valor e fila para que se reinciie
+                    LCD1602_Pos(columna,fila); //pone el cursor en 0,x
+                }
+                break;
+        }
+        cadena++; //el puntero apunta al siguiente caracter
+        conteo++; //suma 1 al conteo total de caracter enviados a la LCD
+    }
+    va_end(ap); //reinicia el puntero
+    return conteo;
+}
+
+
+
+int LCD1602_Print(unsigned char* cadena,unsigned char columna, unsigned char fila)
 {
     int conteo=0;//variable usada para saber cuentos caracteres se imprimieron
 
@@ -318,16 +486,16 @@ int LCD1602_Cadena(unsigned char* cadena,unsigned char* columna, unsigned char* 
     //&conteo = se obtiene la direccion donde se tiene guardado conteo
 
 
-    LCD1602_Pos(*columna,*fila); //indica la posicion inicial del cursor
+    LCD1602_Pos(columna,fila); //indica la posicion inicial del cursor
     while(*cadena)// realiza el ciclo minetras la cadena tenga algun valor
         //el valor 0 o '\0' es fin de cadena
     {
         LCD1602_Dato(*(cadena)); //envia el caracter correspondiente
-        (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
-        if((*columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+        columna++; //suma 1 a la columna indicando que se ha escrito un valor
+        if((columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
         {
-            *fila^=1; //invierte el valor e fila para que se reinciie
-            LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
+            fila^=1; //invierte el valor e fila para que se reinciie
+            LCD1602_Pos(columna,fila); //pone el cursor en 0,x
         }
 
         cadena++; //el puntero apunta al siguiente caracter
@@ -341,13 +509,11 @@ int LCD1602_Cadena(unsigned char* cadena,unsigned char* columna, unsigned char* 
  */
 void main(void)
 {
-    unsigned char fila=0,columna=0;
-    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
-    Conf_Reloj(); //conf de reloj 16 MHz, SMCLK y MCLK
-    //4 bits , 2 lineas, 5x8 puntos, incr cursor
-    Conf_LCD1602();//configuracion de la pantalla LCD1602
-    //LCD1602_Print(" Funcion  Print     InDevice",0,0);
-    LCD1602_Cadena("Funcion M.Cadena    InDevice",&columna,&fila);
-    while(1);
+       WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
+       Conf_Reloj(); //conf de reloj 16 MHz, SMCLK y MCLK
+       //4 bits , 2 lineas, 5x8 puntos, incr cursor
+       Conf_LCD1602();//configuracion de la pantalla LCD1602
+       //LCD1602_Print(" Funcion  Print     InDevice",0,0);
+       LCD1602_PrintF("HOla %s %c \n\t\b\b\b\b%ls print",0,0,"Lalo",'F');
+       while(1);
 }
-

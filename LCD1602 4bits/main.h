@@ -17,7 +17,8 @@ void LCD1602_Com(char comando);
 void LCD1602_Dato(char dato);
 void LCD1602_E(void);
 void LCD1602_Pos(char columna, char fila);
-int LCD1602_Cadena(unsigned char* cadena,unsigned char* columna, unsigned char* fila);
+int LCD1602_Print(unsigned char* cadena,unsigned char columna, unsigned char fila);
+int LCD1602_PrintF(unsigned char* cadena,unsigned char columna, unsigned char fila,...);
 
 
 /*DEfinciones de Comando*/
