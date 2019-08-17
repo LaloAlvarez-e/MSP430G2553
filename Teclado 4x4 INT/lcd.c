@@ -244,7 +244,8 @@ void LCD1602_Com(char comando)
     D7_DIR|=d7_DIR;
 
 
-    for(i=0;i<200;i++);
+
+    for(i=0;i<RETARDO;i++);
     F0_IFG&=~F0;
     F1_IFG&=~F1;
     F2_IFG&=~F2;
@@ -401,7 +402,7 @@ void LCD1602_Dato(char dato)
     D7_DIR|=d7_DIR;
 
 
-    for(i=0;i<200;i++);
+    for(i=0;i<RETARDO;i++);
 
     F0_IFG&=~F0;
      F1_IFG&=~F1;
@@ -564,7 +565,7 @@ char LCD1602_LDato()
 
 
 
-    for(i=0;i<200;i++);
+    for(i=0;i<RETARDO;i++);
 
      F0_IFG&=~F0;
      F1_IFG&=~F1;
@@ -719,7 +720,7 @@ char LCD1602_LCom(unsigned char* columna,unsigned char* fila)
     D7_DIR|=d7_DIR;
 
 
-    for(i=0;i<200;i++);
+    for(i=0;i<RETARDO;i++);
     F0_IFG&=~F0;
      F1_IFG&=~F1;
      F2_IFG&=~F2;
@@ -852,7 +853,7 @@ void LCD1602_Busy()
 
 
 
-    for(i=0;i<200;i++);
+    for(i=0;i<RETARDO;i++);
     F0_IFG&=~F0;
      F1_IFG&=~F1;
      F2_IFG&=~F2;

@@ -12,7 +12,22 @@
 #include <lcd.h>
 
 void Conf_Teclado(void);
-char Leer_Teclado(char fila);
+
+
+extern const unsigned char teclado[4][4];
+extern unsigned char volatile* cOUT[4];
+extern const unsigned char cBIT[4];
+extern volatile unsigned char *volatile fIn[4];
+extern unsigned char volatile* fIfg[4];
+extern unsigned char volatile* fIes[4];
+extern const unsigned char fBit[4];
+extern unsigned char *tabla;
+extern unsigned char tecla[4];
+extern unsigned char teclaFC[4];
+
+extern int filaTECLADO;  //fila presionada
+extern int columnaTECLADO;//columna presionada
+
 
 //#ifndef P2_6
 //#define P2_6

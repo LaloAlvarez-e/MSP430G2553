@@ -40,6 +40,8 @@ unsigned char Conv_Float(double numero,int decimales, char* conv);
 
 /*DEfinciones de Comando*/
 
+#define RETARDO 3000
+
 #define GCRAM 0x40 //comando para guardar algun caracter personalizado
 
 #define CLEAR 0x1 //limpia la pantalla
