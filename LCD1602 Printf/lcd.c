@@ -8,6 +8,7 @@
 
 #include <lcd.h>
 
+
 const char signos[8][8]= //°¬¡?\¨´ñ
 {
  {2,5,2,0,0,0,0,0}, // °
@@ -24,7 +25,7 @@ const char signos[8][8]= //°¬¡?\¨´ñ
 
 void Conf_LCD1602(void)
 {
-    register int Delay=0;
+    long Delay=0;
      /*Conf para P1.0=RS P1.1=RW P1.2=E*/
     E_DIR|=E;
     E_OUT&=~E;
@@ -99,14 +100,14 @@ void Conf_LCD1602(void)
     /*IAdd o DAdd*/
     LCD1602_Com(IncAdd);
 
-    LCD1602_Com(HOME);//Manda cursor a home
-    for(Delay=3000; Delay>0; Delay--);//1.60 ms aprox a 16MHz
-
     for(Delay=0;Delay<8;Delay++)
     {
         LCD1602_GC(&signos[Delay][0], Delay);
     }
 
+
+    LCD1602_Com(HOME);//Manda cursor a home
+    for(Delay=3000; Delay>0; Delay--);//1.60 ms aprox a 16MHz
 }
 
 
@@ -292,6 +293,46 @@ void LCD1602_Dato(char dato)
     RS_OUT|=valorRS;
     RW_OUT|=valorRW;
 }
+
+void LCD1602_Char(char dato)
+{
+    //°¬¡?\¨´ñ
+    switch(dato)
+    {
+    case '°':
+        dato=0;
+        break;
+    case '¬':
+        dato=1;
+        break;
+    case '¡':
+        dato=2;
+        break;
+    case '¿':
+        dato=3;
+        break;
+    case '\\':
+        dato=4;
+        break;
+    case '¨':
+        dato=5;
+        break;
+    case '´':
+        dato=6;
+        break;
+    case 'ñ':
+    case 'Ñ':
+        dato=7;
+        break;
+    default:
+        break;
+    }
+    LCD1602_Dato(dato);
+}
+
+
+
+
 void LCD1602_E(void)
 {
     E_OUT|=E; //manda a 1 logico el bit E (Enable)
@@ -521,6 +562,9 @@ unsigned char Conv_Oct(long long numero, char* conv)
 
     return numeroReg - 1;
 }
+//register va_list ap; //crea puntero de los argumentos
+//va_start(ap, fila);//maneja la memoria de los argumentos empezando desde el ultimo conocido ingresado
+//va_end(ap); //reinicia el puntero
 
 
 void LCD1602_GC(const char* datos, char dir)
@@ -528,115 +572,102 @@ void LCD1602_GC(const char* datos, char dir)
   register char i=0;
   if( dir>7) //solo tiene espacio para guardar 8 caracteres
     return;
-
   LCD1602_Com(GCRAM+(dir<<3)); // 01xx xddd x=caracter d=posicion
-
-  //caracter 0 = 01000ddd //cada caracter tiene 8 localidadesde 5 bits cada uno
-  //caracter 1 = 01001ddd
-  //caracter 2 = 01010ddd
-  //.
-  //.
-  //.
-  //caracter 7 = 01111ddd
-
-  //°¬¡¿\¨´
-
-  //765 43210 signo ° {2,5,2,0,0,0,0,0}
-  //000 00010
-  //000 00101
-  //000 00010
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000 //por lo regular se dejapara le cursor
-
-  //765 43210 signo ¬ {0,0,0,0,0xF,1,0,0}
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 01111
-  //000 00001
-  //000 00000
-  //000 00000 //por lo regular se dejapara le cursor
-
-  //765 43210 signo ¡ {4,0,0,4,4,4,4,0}
-  //000 00100
-  //000 00000
-  //000 00000
-  //000 00100
-  //000 00100
-  //000 00100
-  //000 00100
-  //000 00000
-
-  //765 43210 signo ¿ {4,0,4,8,0x10,0x11,0xE,0}
-  //000 00100
-  //000 00000
-  //000 00100
-  //000 01000
-  //000 10000
-  //000 10001
-  //000 01110
-  //000 00000
-
-
-  //765 43210 signo \{0,0x10,8,4,2,1,0,0}
-  //000 00000
-  //000 10000
-  //000 01000
-  //000 00100
-  //000 00010
-  //000 00001
-  //000 00000
-  //000 00000
-
-  //765 43210 signo ¨ {0xA,0,0,0,0,0,0,0}
-  //000 01010
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000
-
-  //765 43210 signo ´ {0,2,4,8,0,0,0,0}
-  //000 00000
-  //000 00010
-  //000 00100
-  //000 01000
-  //000 00000
-  //000 00000
-  //000 00000
-  //000 00000
-
-  //765 43210 simbolo carga {0xE,0x1B,0x11,0x11,0x13,0x17,0x1F,0x1F}
-  //000 01110
-  //000 11011
-  //000 10001
-  //000 10001
-  //000 10011
-  //000 10111
-  //000 11111
-  //000 11111
-
-  //765 43210 ñ {0xA,0x05,0,0x16,0x19,0x11,0x11,0}
-  //000 01010
-  //000 00101
-  //000 00000
-  //000 10110
-  //000 11001
-  //000 10001
-  //000 10001
-  //000 00000
-
   while(i<8)
   {
     LCD1602_Dato(datos[i++]);
   }
 }
+
+unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char* fila)
+{
+    register unsigned char conteo=0;//variable usada para saber cuantos caracteres se mandaron a la LCD
+    register char salir=0; //variable que funciona cuanod encuentra un ESC
+    register int delay; //utilizada para los comandos como clear y home
+    (*columna)&=0xF;//delimita el valor inicial de columna de 0 a 15
+    LCD1602_Pos(*columna,*fila); //indica la posicion inicial del cursor
+    while(*cadena)// realiza el ciclo mientras la cadena tenga algun valor
+           //el valor 0 o '\0' es fin de cadena
+    {
+        switch (*cadena) //detecta si existe un caracter especial
+        {
+        case '\n': //salto de linea
+            (*fila)++; //aumenta la fila
+            LCD1602_Pos(*columna,*fila); //actualiza la posicion
+            break;
+        case '\r': //retorno de carro
+            *columna=0; //actualiza el valor de la columna a la primera posicion
+            LCD1602_Pos(*columna,*fila); //actualiza la posicion
+            break;
+        case '\t': //tabulacion
+            if(((*columna)&0xF)<13)
+                *columna+=3; //aumenta 3 espacios vacios
+            else
+            {
+                *columna=0; // pasa a la siguiente fila si no cabe la tabulacion
+                *fila++;
+            }
+            LCD1602_Pos(*columna,*fila); //actualiza la posicion
+            break;
+         case '\b': //retroceso
+            if(((*columna)!=0) || ((*fila)!=0)) //si la columna y fila es diferente a 0 puede retroceder
+            {
+                if(((*columna)!=0)) //si la columna encuentra entre 1 y 15 puede disminuir uno
+                    (*columna)--;
+                else
+                    if(((*fila)!=0)) //si la columna es 0 entonces checa si existen filas que disminuir
+                    {
+                        (*columna)=0xF;
+                        (*fila)--;
+                    }
+            }
+            LCD1602_Pos(*columna,*fila); //actualiza la posicion
+            break;
+        case '\a'://borrado (ascii sonido)
+            if(((*columna)!=0) || ((*fila)!=0)) //si la columna es diferente a 0 puede retroceder
+            {
+                if(((*columna)!=0))
+                    (*columna)--;
+                else
+                    if(((*fila)!=0))
+                    {
+                        (*columna)=0xF;
+                        (*fila)--;
+                    }
+            }
+            LCD1602_Pos(*columna,*fila); //actualiza la posicion
+            LCD1602_Char(' ');//borra el caracter que pudiera haber en la posicion
+            LCD1602_Pos(*columna,*fila); //actualiza la posicion
+            break;
+        case '\e': //escape
+            salir=1;//indica que se necesita salir de la funcion
+            break;
+        case '\f': //nueva pagina
+            *columna=*fila=0;//reinicia los valores
+            LCD1602_Com(CLEAR); //limpia la pantalla
+            for(delay=3000; delay>0; delay--);//1.60 ms aprox a 16MHz
+            LCD1602_Pos(*columna,*fila); //actualiza la posicion a 0,0
+            break;
+        default :
+            LCD1602_Char(*(cadena)); //envia el caracter correspondiente
+            (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
+            if((*columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+            {
+                (*columna)=0;
+                (*fila)++; //invierte el valor e fila para que se reinciie
+                LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
+            }
+            break;
+        }
+        cadena++; //el puntero apunta al siguiente caracter
+        conteo++; //suma 1 al conteo total de caracter enviados a la LCD
+        if(salir) //si detecto un \e (escape) sale del ciclo while
+            break;
+    }
+     return conteo; //regresa el conteo de caracteres y caracteres especiales
+}
+
+
 
 
 

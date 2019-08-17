@@ -15,12 +15,16 @@
 void Conf_LCD1602(void);
 void LCD1602_Com(char comando);
 void LCD1602_Dato(char dato);
+
+
 void LCD1602_E(void);
 void LCD1602_Pos(char columna, char fila);
+int LCD1602_Cadena(char* cadena,unsigned char* columna, unsigned char* fila);
 void LCD1602_GC (const char* datos,char dir);
 
+void LCD1602_Char(char dato);
+unsigned char LCD1602_Printf(char* conv,unsigned char* columna, unsigned char* fila);
 
-int LCD1602_Cadena(char* cadena,unsigned char* columna, unsigned char* fila);
 unsigned char Conv_Entero(long long numero,char* conv);
 unsigned char Conv_Hex(long long numero,char* conv);
 unsigned char Conv_HEX(long long numero,char* conv);
@@ -28,7 +32,6 @@ unsigned char Conv_Oct(long long numero,char* conv);
 unsigned char Conv_Float(double numero,int decimales, char* conv);
 
 /*DEfinciones de Comando*/
-
 
 #define GCRAM 0x40 //comando para guardar algun caracter personalizado
 
