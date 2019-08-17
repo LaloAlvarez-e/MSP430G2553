@@ -95,7 +95,6 @@ void Conf_LCD1602(void)
     LCD1602_Com(ONDisp|OFFCursor|OFFBlink );
 
     LCD1602_Com(CLEAR); //limpia la pantalla
-    for(Delay=3000; Delay>0; Delay--);//1.60 ms aprox a 16MHz
 
     /*IAdd o DAdd*/
     LCD1602_Com(IncAdd);
@@ -107,15 +106,16 @@ void Conf_LCD1602(void)
 
 
     LCD1602_Com(HOME);//Manda cursor a home
-    for(Delay=3000; Delay>0; Delay--);//1.60 ms aprox a 16MHz
 }
 
 
 void LCD1602_Com(char comando)
 {
-    unsigned char Delay=0;
-    unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
+   unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
     unsigned char valorRW=0, valorRS=0;
+    unsigned char d4_DIR,d5_DIR,d6_DIR,d7_DIR;
+    unsigned char d4_REN,d5_REN,d6_REN,d7_REN;
+
     //guarda los valores anterior de los pines, en caso que se compartan con otras cosas
     valorD4=D4_IN & D4;
     valorD5=D5_IN & D5;
@@ -127,15 +127,29 @@ void LCD1602_Com(char comando)
     RW_OUT&=~RW; //RW para escritura 1=lectura 0=escritura
     RS_OUT&=~RS; //RS 1=dato 0=comando
 
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
 
-    //D7_OUT&=~D7;
-    //D7_OUT|=((comando&0x80)&&1)<<D7_POS;
-    //D6_OUT&=~D6;
-    //D6_OUT|=((comando&0x40)&&1)<<D6_POS;
-    //D5_OUT&=~D5;
-    //D5_OUT|=((comando&0x20)&&1)<<D5_POS;
-    //D4_OUT&=~D4;
-    //D4_OUT|=((comando&0x10)&&1)<<D4_POS;
+    d4_DIR=D4_DIR & D4;
+    d5_DIR=D5_DIR & D5;
+    d6_DIR=D6_DIR & D6;
+    d7_DIR=D7_DIR & D7;
+
+    d4_REN=D4_REN & D4;
+    d5_REN=D5_REN & D5;
+    d6_REN=D6_REN & D6;
+    d7_REN=D7_REN & D7;
+
+
+    D4_DIR|=D4;
+    D5_DIR|=D5;
+    D6_DIR|=D6;
+    D7_DIR|=D7;
+
+    D4_REN&=~D4;
+    D5_REN&=~D5;
+    D6_REN&=~D6;
+    D7_REN&=~D7;
+
     if(comando&0x80)
         D7_OUT|=D7;
     else
@@ -155,17 +169,10 @@ void LCD1602_Com(char comando)
         D4_OUT|=D4;
     else
         D4_OUT&=~D4;
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
 
-    //D7_OUT&=~D7;
-    //D7_OUT|=((comando&0x8)&&1)<<D7_POS;
-    //D6_OUT&=~D6;
-    //D6_OUT|=((comando&0x4)&&1)<<D6_POS;
-    //D5_OUT&=~D5;
-    //D5_OUT|=((comando&0x2)&&1)<<D5_POS;
-    //D4_OUT&=~D4;
-    //D4_OUT|=((comando&0x1)&&1)<<D4_POS;
 
+    E_OUT&=~E;//manda a 0 logico E, completando el pulso
+    E_OUT|=E;
     if(comando&0x8)
         D7_OUT|=D7;
     else
@@ -185,28 +192,48 @@ void LCD1602_Com(char comando)
         D4_OUT|=D4;
     else
         D4_OUT&=~D4;
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
-    for(Delay=150; Delay>0; Delay--);//40 us aprox a 16MHz
+
+
+    E_OUT&=~E;//manda a 0 logico E, completando el pulso
+
+    LCD1602_Busy();
 
 
     D4_OUT&=~D4;//reinicia los bits
     D5_OUT&=~D5;
     D6_OUT&=~D6;
     D7_OUT&=~D7;
-    RS_OUT&=~RS;
-    RW_OUT&=~RW;
     D4_OUT|=valorD4; //restaura el valor anterior
     D5_OUT|=valorD5;
     D6_OUT|=valorD6;
     D7_OUT|=valorD7;
     RS_OUT|=valorRS;
     RW_OUT|=valorRW;
+
+    D4_DIR&=~D4;
+    D5_DIR&=~D5;
+    D6_DIR&=~D6;
+    D7_DIR&=~D7;
+
+    D4_DIR|=d4_DIR;
+    D5_DIR|=d5_DIR;
+    D6_DIR|=d6_DIR;
+    D7_DIR|=d7_DIR;
+
+    D4_REN|=d4_REN;
+    D5_REN|=d5_REN;
+    D6_REN|=d6_REN;
+    D7_REN|=d7_REN;
+
 }
 void LCD1602_Dato(char dato)
 {
-    unsigned char Delay=0;
+
     unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
     unsigned char valorRW=0, valorRS=0;
+    unsigned char d4_DIR,d5_DIR,d6_DIR,d7_DIR;
+    unsigned char d4_REN,d5_REN,d6_REN,d7_REN;
+
     //guarda los valores anterior de los pines, en caso que se compartan con otras cosas
     valorD4=D4_IN & D4;
     valorD5=D5_IN & D5;
@@ -215,18 +242,32 @@ void LCD1602_Dato(char dato)
     valorRW=RW_IN & RW;
     valorRS=RS_IN & RS;
 
+
     RW_OUT&=~RW; //RW para escritura 1=lectura 0=escritura
     RS_OUT|=RS; //RS 1=dato 0=comando
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
+    d4_DIR=D4_DIR & D4;
+    d5_DIR=D5_DIR & D5;
+    d6_DIR=D6_DIR & D6;
+    d7_DIR=D7_DIR & D7;
+
+    d4_REN=D4_REN & D4;
+    d5_REN=D5_REN & D5;
+    d6_REN=D6_REN & D6;
+    d7_REN=D7_REN & D7;
 
 
-    //D7_OUT&=~D7;
-    //D7_OUT|=((dato&0x80)&&1)<<D7_POS;
-    //D6_OUT&=~D6;
-    //D6_OUT|=((dato&0x40)&&1)<<D6_POS;
-    //D5_OUT&=~D5;
-    //D5_OUT|=((dato&0x20)&&1)<<D5_POS;
-    //D4_OUT&=~D4;
-    //D4_OUT|=((dato&0x10)&&1)<<D4_POS;
+    D4_DIR|=D4;
+    D5_DIR|=D5;
+    D6_DIR|=D6;
+    D7_DIR|=D7;
+
+    D4_REN&=~D4;
+    D5_REN&=~D5;
+    D6_REN&=~D6;
+    D7_REN&=~D7;
+
     if(dato&0x80)
         D7_OUT|=D7;
     else
@@ -246,16 +287,10 @@ void LCD1602_Dato(char dato)
         D4_OUT|=D4;
     else
         D4_OUT&=~D4;
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
 
-    //D7_OUT&=~D7;
-    //D7_OUT|=((dato&0x8)&&1)<<D7_POS;
-    //D6_OUT&=~D6;
-    //D6_OUT|=((dato&0x4)&&1)<<D6_POS;
-    //D5_OUT&=~D5;
-    //D5_OUT|=((dato&0x2)&&1)<<D5_POS;
-    //D4_OUT&=~D4;
-    //D4_OUT|=((dato&0x1)&&1)<<D4_POS;
+    E_OUT&=~E; //manda a 1 logico el bit E (Enable)
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
 
     if(dato&0x8)
         D7_OUT|=D7;
@@ -276,8 +311,8 @@ void LCD1602_Dato(char dato)
         D4_OUT|=D4;
     else
         D4_OUT&=~D4;
-    LCD1602_E(); //manda un pulso en el pin E (Enable)
-    for(Delay=150; Delay>0; Delay--);//40 us aprox a 16MHz
+    E_OUT&=~E; //manda a 1 logico el bit E (Enable)
+    LCD1602_Busy();
 
 
     D4_OUT&=~D4;//reinicia los bits
@@ -285,13 +320,374 @@ void LCD1602_Dato(char dato)
     D6_OUT&=~D6;
     D7_OUT&=~D7;
     RS_OUT&=~RS;
-    RW_OUT&=~RW;
+
     D4_OUT|=valorD4; //restaura el valor anterior
     D5_OUT|=valorD5;
     D6_OUT|=valorD6;
     D7_OUT|=valorD7;
     RS_OUT|=valorRS;
     RW_OUT|=valorRW;
+
+    D4_DIR&=~D4;
+    D5_DIR&=~D5;
+    D6_DIR&=~D6;
+    D7_DIR&=~D7;
+
+    D4_DIR|=d4_DIR;
+    D5_DIR|=d5_DIR;
+    D6_DIR|=d6_DIR;
+    D7_DIR|=d7_DIR;
+
+    D4_REN|=d4_REN;
+    D5_REN|=d5_REN;
+    D6_REN|=d6_REN;
+    D7_REN|=d7_REN;
+}
+
+
+char LCD1602_LDato()
+{
+    unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
+    unsigned char valorRW=0, valorRS=0;
+    unsigned char d4_DIR,d5_DIR,d6_DIR,d7_DIR;
+    unsigned char d4_REN,d5_REN,d6_REN,d7_REN;
+    char dato=0;
+    //guarda los valores anterior de los pines, en caso que se compartan con otras cosas
+
+    valorD4=D4_IN & D4;
+    valorD5=D5_IN & D5;
+    valorD6=D6_IN & D6;
+    valorD7=D7_IN & D7;
+    valorRW=RW_IN & RW;
+    valorRS=RS_IN & RS;
+
+    RW_OUT|=RW; //RW para escritura 1=lectura 0=escritura
+    RS_OUT|=RS; //RS 1=dato 0=comando
+
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
+
+    d4_DIR=D4_DIR & D4;
+    d5_DIR=D5_DIR & D5;
+    d6_DIR=D6_DIR & D6;
+    d7_DIR=D7_DIR & D7;
+
+    d4_REN=D4_REN & D4;
+    d5_REN=D5_REN & D5;
+    d6_REN=D6_REN & D6;
+    d7_REN=D7_REN & D7;
+
+
+    D4_DIR&=~D4;
+    D5_DIR&=~D5;
+    D6_DIR&=~D6;
+    D7_DIR&=~D7;
+
+    D4_REN|=D4;
+    D5_REN|=D5;
+    D6_REN|=D6;
+    D7_REN|=D7;
+
+    D4_OUT&=~D4;
+    D5_OUT&=~D5;
+    D6_OUT&=~D6;
+    D7_OUT&=~D7;
+
+    if(D7_IN&D7)
+        dato|=0x80;
+    else
+        dato&=~0x80;
+
+
+    if(D6_IN&D6)
+        dato|=0x40;
+    else
+        dato&=~0x40;
+
+
+    if(D5_IN&D5)
+        dato|=0x20;
+    else
+        dato&=~0x20;
+
+    if(D4_IN&D4)
+        dato|=0x10;
+    else
+        dato&=~0x10;
+
+    E_OUT&=~E;//manda a 0 logico E, completando el pulso
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
+    if(D7_IN&D7)
+        dato|=0x8;
+    else
+        dato&=~0x8;
+
+    if(D6_IN&D6)
+        dato|=0x4;
+    else
+        dato&=~0x4;
+
+    if(D5_IN&D5)
+        dato|=0x2;
+    else
+        dato&=~0x2;
+
+    if(D4_IN&D4)
+        dato|=0x1;
+    else
+        dato&=~0x1;
+    E_OUT&=~E;//manda a 0 logico E, completando el pulso
+
+    LCD1602_Busy();
+
+
+    RS_OUT&=~RS;
+    RW_OUT&=~RW;
+
+    D4_OUT|=valorD4; //restaura el valor anterior
+    D5_OUT|=valorD5;
+    D6_OUT|=valorD6;
+    D7_OUT|=valorD7;
+    RS_OUT|=valorRS;
+    RW_OUT|=valorRW;
+
+    D4_DIR|=d4_DIR;
+    D5_DIR|=d5_DIR;
+    D6_DIR|=d6_DIR;
+    D7_DIR|=d7_DIR;
+
+    D4_REN&=~D4;
+    D5_REN&=~D5;
+    D6_REN&=~D6;
+    D7_REN&=~D7;
+
+    D4_REN|=d4_REN;
+    D5_REN|=d5_REN;
+    D6_REN|=d6_REN;
+    D7_REN|=d7_REN;
+
+    return dato;
+}
+
+
+
+char LCD1602_LCom(unsigned char* columna,unsigned char* fila)
+{
+    unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
+    unsigned char valorRW=0, valorRS=0;
+    unsigned char d4_DIR,d5_DIR,d6_DIR,d7_DIR;
+    unsigned char d4_REN,d5_REN,d6_REN,d7_REN;
+    char dato=0;
+    //guarda los valores anterior de los pines, en caso que se compartan con otras cosas
+
+    valorD4=D4_IN & D4;
+    valorD5=D5_IN & D5;
+    valorD6=D6_IN & D6;
+    valorD7=D7_IN & D7;
+    valorRW=RW_IN & RW;
+    valorRS=RS_IN & RS;
+
+    RW_OUT|=RW; //RW para escritura 1=lectura 0=escritura
+    RS_OUT&=~RS; //RS 1=dato 0=comando
+
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
+
+    d4_DIR=D4_DIR & D4;
+    d5_DIR=D5_DIR & D5;
+    d6_DIR=D6_DIR & D6;
+    d7_DIR=D7_DIR & D7;
+
+    d4_REN=D4_REN & D4;
+    d5_REN=D5_REN & D5;
+    d6_REN=D6_REN & D6;
+    d7_REN=D7_REN & D7;
+
+
+    D4_DIR&=~D4;
+    D5_DIR&=~D5;
+    D6_DIR&=~D6;
+    D7_DIR&=~D7;
+
+    D4_REN|=D4;
+    D5_REN|=D5;
+    D6_REN|=D6;
+    D7_REN|=D7;
+
+    D4_OUT&=~D4;
+    D5_OUT&=~D5;
+    D6_OUT&=~D6;
+    D7_OUT&=~D7;
+
+    if(D7_IN&D7)
+        dato=1;
+    else
+        dato=0;
+
+
+    if(D6_IN&D6)
+        *fila=1;
+    else
+        *fila=0;
+
+
+    E_OUT&=~E;//manda a 0 logico E, completando el pulso
+    E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
+    if(D7_IN&D7)
+        *columna|=0x8;
+    else
+        *columna&=~0x8;
+
+    if(D6_IN&D6)
+        *columna|=0x4;
+    else
+        *columna&=~0x4;
+
+    if(D5_IN&D5)
+        *columna|=0x2;
+    else
+        *columna&=~0x2;
+
+    if(D4_IN&D4)
+        *columna|=0x1;
+    else
+        *columna&=~0x1;
+    E_OUT&=~E;//manda a 0 logico E, completando el pulso
+
+
+    RS_OUT&=~RS;
+    RW_OUT&=~RW;
+
+    D4_OUT|=valorD4; //restaura el valor anterior
+    D5_OUT|=valorD5;
+    D6_OUT|=valorD6;
+    D7_OUT|=valorD7;
+    RS_OUT|=valorRS;
+    RW_OUT|=valorRW;
+
+    D4_DIR|=d4_DIR;
+    D5_DIR|=d5_DIR;
+    D6_DIR|=d6_DIR;
+    D7_DIR|=d7_DIR;
+
+    D4_REN&=~D4;
+    D5_REN&=~D5;
+    D6_REN&=~D6;
+    D7_REN&=~D7;
+
+    D4_REN|=d4_REN;
+    D5_REN|=d5_REN;
+    D6_REN|=d6_REN;
+    D7_REN|=d7_REN;
+
+    return dato;
+}
+
+
+void LCD1602_Busy()
+{
+    unsigned char valorD4=0,valorD5=0,valorD6=0,valorD7=0;
+    unsigned char valorRW=0, valorRS=0;
+    unsigned char d4_DIR,d5_DIR,d6_DIR,d7_DIR;
+    unsigned char d4_REN,d5_REN,d6_REN,d7_REN;
+    char dato=0;
+    //guarda los valores anterior de los pines, en caso que se compartan con otras cosas
+
+    valorD4=D4_IN & D4;
+    valorD5=D5_IN & D5;
+    valorD6=D6_IN & D6;
+    valorD7=D7_IN & D7;
+    valorRW=RW_IN & RW;
+    valorRS=RS_IN & RS;
+
+    RW_OUT|=RW; //RW para escritura 1=lectura 0=escritura
+    RS_OUT&=~RS; //RS 1=dato 0=comando
+
+
+
+    d4_DIR=D4_DIR & D4;
+    d5_DIR=D5_DIR & D5;
+    d6_DIR=D6_DIR & D6;
+    d7_DIR=D7_DIR & D7;
+
+    d4_REN=D4_REN & D4;
+    d5_REN=D5_REN & D5;
+    d6_REN=D6_REN & D6;
+    d7_REN=D7_REN & D7;
+
+
+    D4_DIR&=~D4;
+    D5_DIR&=~D5;
+    D6_DIR&=~D6;
+    D7_DIR&=~D7;
+
+    D4_REN|=D4;
+    D5_REN|=D5;
+    D6_REN|=D6;
+    D7_REN|=D7;
+
+    D4_OUT&=~D4;
+    D5_OUT&=~D5;
+    D6_OUT&=~D6;
+    D7_OUT&=~D7;
+    do{
+        E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
+        if(D7_IN&D7)
+            dato=1;
+        else
+            dato=0;
+
+        E_OUT&=~E;//manda a 0 logico E, completando el pulso
+        E_OUT|=E; //manda a 1 logico el bit E (Enable)
+
+        E_OUT&=~E;//manda a 0 logico E, completando el pulso
+
+    }while(dato);
+
+    RW_OUT&=~RW;
+
+    D4_OUT|=valorD4; //restaura el valor anterior
+    D5_OUT|=valorD5;
+    D6_OUT|=valorD6;
+    D7_OUT|=valorD7;
+    RS_OUT|=valorRS;
+    RW_OUT|=valorRW;
+
+
+    D4_DIR|=d4_DIR;
+    D5_DIR|=d5_DIR;
+    D6_DIR|=d6_DIR;
+    D7_DIR|=d7_DIR;
+
+    D4_REN&=~D4;
+    D5_REN&=~D5;
+    D6_REN&=~D6;
+    D7_REN&=~D7;
+
+    D4_REN|=d4_REN;
+    D5_REN|=d5_REN;
+    D6_REN|=d6_REN;
+    D7_REN|=d7_REN;
+
+}
+
+void LCD1602_Lectura(unsigned char columna,unsigned char fila,char cantidad,char* conv)
+{
+
+
+    LCD1602_Pos(columna,fila);
+    while(cantidad--)
+    {
+        *conv=LCD1602_LDato();
+        conv++;
+    }
+    *conv=0;
+    LCD1602_Pos(columna,fila);
+
+
 }
 
 void LCD1602_Char(char dato)
@@ -339,7 +735,7 @@ void LCD1602_E(void)
     E_OUT&=~E;//manda a 0 logico E, completando el pulso
 }
 
-void LCD1602_Pos(char columna, char fila)
+void LCD1602_Pos(unsigned char columna,unsigned char fila)
 {
     register long direccion=0x80;
     direccion|=columna&0xF;
@@ -347,20 +743,21 @@ void LCD1602_Pos(char columna, char fila)
     LCD1602_Com(direccion);
 }
 
-
+void LCD1602_Limites(unsigned char* columna,unsigned char* fila)
+{
+    (*columna)++;
+    if((*columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+    {
+        (*columna)=0;
+        (*fila)++; //invierte el valor e fila para que se reinciie
+        LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
+    }
+}
 
 int LCD1602_Cadena(char* cadena,unsigned char* columna, unsigned char* fila)
 {
     register int conteo=0;//variable usada para saber cuentos caracteres se imprimieron
 
-    //punteros
-    // cadena = contiene una direccion
-    //*cadena = apunta al valor de la direccion guardada en cadena
-    //cadena++ o cadena+=1 o cadena= cadena + 1, apunta a la sig direccion
-
-    //variables
-    //conteo= tiene guardado un valor
-    //&conteo = se obtiene la direccion donde se tiene guardado conteo
     LCD1602_Pos(*columna,*fila); //indica la posicion inicial del cursor
     while(*cadena)// realiza el ciclo minetras la cadena tenga algun valor
         //el valor 0 o '\0' es fin de cadena
@@ -411,12 +808,7 @@ unsigned char Conv_Entero(long long numero, char* conv)
     numeroReg=convTemp+21-punteroActual;//realiza la resta de cuantos caracteres se utilizaron
     for (i = 0; i< numeroReg; i++) //hace un ciclo burbuja optimizado
     {
-        //toma como base para copiar el ultimo digito utilizado
-        //ejemplo
-       // convTemp="xxxxxxx-156\0"
-       // punteroActual = "-156\0"
-        //conv="-156\0"
-        ((unsigned char *)conv)[i] = ((const unsigned char *)punteroActual)[i];
+       ((unsigned char *)conv)[i] = ((const unsigned char *)punteroActual)[i];
     }
 
     return numeroReg - 1;
@@ -563,6 +955,38 @@ unsigned char Conv_Oct(long long numero, char* conv)
 }
 
 
+
+unsigned char Conv_Bin(long numero, char* conv)
+{
+    char           convTemp[26]; //longitud maxima de long 22 digitos
+    register char *punteroActual;
+    register int num=0;
+    register char i=0;
+    register unsigned long  numeroReg = (unsigned long)numero;//paso el numero a un registro para aumentar rendimiento
+
+    punteroActual = &convTemp[26 - 1]; //empezamos llenando desde la ultima posicion
+    *punteroActual = 0; //guarda el fin de cadena en la ultima posicion
+
+    do {
+        punteroActual--;//se decrementa la posicion donse guardara el valor
+        num=numeroReg&0x1; //obtiene el digito de menor peso
+        *punteroActual = num+'0'; //convierte el valor en caracter
+        numeroReg>>=1;
+    }  while((numeroReg > 0)); //mientras exista un digito sigue el ciclo
+
+
+    punteroActual--;
+    *punteroActual = 'b';//si el numero es negativo guarda el signo negativo
+
+    numeroReg=convTemp+26-punteroActual;//realiza la resta de cuantos caracteres se utilizaron
+    for (i = 0; i< numeroReg; i++) //hace un ciclo burbuja optimizado
+    {
+        ((unsigned char *)conv)[i] = ((const unsigned char *)punteroActual)[i];
+    }
+
+    return numeroReg - 1;
+}
+
 void LCD1602_GC(const char* datos, char dir)
 {
   register char i=0;
@@ -579,8 +1003,7 @@ unsigned char LCD1602_Print(char* cadena,unsigned char* columna, unsigned char* 
 {
     register unsigned char conteo=0;//variable usada para saber cuantos caracteres se mandaron a la LCD
     register char salir=0; //variable que funciona cuanod encuentra un ESC
-    register int delay; //utilizada para los comandos como clear y home
-    (*columna)&=0xF;//delimita el valor inicial de columna de 0 a 15
+     (*columna)&=0xF;//delimita el valor inicial de columna de 0 a 15
     LCD1602_Pos(*columna,*fila); //indica la posicion inicial del cursor
     while(*cadena)// realiza el ciclo mientras la cadena tenga algun valor
            //el valor 0 o '\0' es fin de cadena
@@ -589,11 +1012,9 @@ unsigned char LCD1602_Print(char* cadena,unsigned char* columna, unsigned char* 
         {
         case '\n': //salto de linea
             (*fila)++; //aumenta la fila
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
         case '\r': //retorno de carro
             *columna=0; //actualiza el valor de la columna a la primera posicion
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
         case '\t': //tabulacion
             if(((*columna)&0xF)<13)
@@ -603,8 +1024,8 @@ unsigned char LCD1602_Print(char* cadena,unsigned char* columna, unsigned char* 
                 *columna=0; // pasa a la siguiente fila si no cabe la tabulacion
                 *fila++;
             }
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
+         case '\a':
          case '\b': //retroceso
             if(((*columna)!=0) || ((*fila)!=0)) //si la columna y fila es diferente a 0 puede retroceder
             {
@@ -617,48 +1038,30 @@ unsigned char LCD1602_Print(char* cadena,unsigned char* columna, unsigned char* 
                         (*fila)--;
                     }
             }
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
-            break;
-        case '\a'://borrado (ascii sonido)
-            if(((*columna)!=0) || ((*fila)!=0)) //si la columna es diferente a 0 puede retroceder
+            if((*cadena)=='\a')
             {
-                if(((*columna)!=0))
-                    (*columna)--;
-                else
-                    if(((*fila)!=0))
-                    {
-                        (*columna)=0xF;
-                        (*fila)--;
-                    }
+                LCD1602_Pos(*columna,*fila); //actualiza la posicion
+                LCD1602_Char(' ');//borra el caracter que pudiera haber en la posicion
             }
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
-            LCD1602_Char(' ');//borra el caracter que pudiera haber en la posicion
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
         case '\e': //escape
             salir=1;//indica que se necesita salir de la funcion
             break;
         case '\f': //nueva pagina
             *columna=*fila=0;//reinicia los valores
-            LCD1602_Com(CLEAR); //limpia la pantalla
-            for(delay=3000; delay>0; delay--);//1.60 ms aprox a 16MHz
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion a 0,0
+             LCD1602_Com(CLEAR); //limpia la pantalla
             break;
         default :
             LCD1602_Char(*(cadena)); //envia el caracter correspondiente
-            (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
-            if((*columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
-            {
-                (*columna)=0;
-                (*fila)++; //invierte el valor e fila para que se reinciie
-                LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
-            }
+            LCD1602_Limites(columna,fila);
             break;
         }
         cadena++; //el puntero apunta al siguiente caracter
         conteo++; //suma 1 al conteo total de caracter enviados a la LCD
         if(salir) //si detecto un \e (escape) sale del ciclo while
             break;
+        LCD1602_Pos(*columna,*fila); //actualiza la posicion
+
     }
      return conteo; //regresa el conteo de caracteres y caracteres especiales
 }
@@ -670,7 +1073,6 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
 {
     register unsigned char conteo=0;//variable usada para saber cuantos caracteres se mandaron a la LCD
     register char salir=0; //variable que funciona cuanod encuentra un ESC
-    register int delay; //utilizada para los comandos como clear y home
 
     va_list ap; //crea puntero de los argumentos
     double valorARGd; //variable donde guardara el valor del argumento
@@ -688,11 +1090,9 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
         {
         case '\n': //salto de linea
             (*fila)++; //aumenta la fila
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
         case '\r': //retorno de carro
             *columna=0; //actualiza el valor de la columna a la primera posicion
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
         case '\t': //tabulacion
             if(((*columna)&0xF)<13)
@@ -702,8 +1102,8 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
                 *columna=0; // pasa a la siguiente fila si no cabe la tabulacion
                 *fila++;
             }
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
+         case '\a':
          case '\b': //retroceso
             if(((*columna)!=0) || ((*fila)!=0)) //si la columna y fila es diferente a 0 puede retroceder
             {
@@ -716,23 +1116,11 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
                         (*fila)--;
                     }
             }
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
-            break;
-        case '\a'://borrado (ascii sonido)
-            if(((*columna)!=0) || ((*fila)!=0)) //si la columna es diferente a 0 puede retroceder
+            if((*cadena)=='\a')
             {
-                if(((*columna)!=0))
-                    (*columna)--;
-                else
-                    if(((*fila)!=0))
-                    {
-                        (*columna)=0xF;
-                        (*fila)--;
-                    }
+                LCD1602_Pos(*columna,*fila); //actualiza la posicion
+                LCD1602_Dato(' ');//borra el caracter que pudiera haber en la posicion
             }
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
-            LCD1602_Char(' ');//borra el caracter que pudiera haber en la posicion
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion
             break;
         case '\e': //escape
             salir=1;//indica que se necesita salir de la funcion
@@ -740,13 +1128,7 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
         case '\f': //nueva pagina
             *columna=*fila=0;//reinicia los valores
             LCD1602_Com(CLEAR); //limpia la pantalla
-            for(delay=5000; delay>0; delay--);//1.60 ms aprox a 16MHz
-            LCD1602_Pos(*columna,*fila); //actualiza la posicion a 0,0
             break;
-
-
-
-
         case '%':
             cadena++;
             switch(*cadena)
@@ -777,30 +1159,26 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
                     Conv_Oct(valorARGi,conversion);
                     conteo+=LCD1602_Cadena(conversion,columna,fila)-1;
                     break;
-                case 'f': //"%f"
-                    valorARGd=(double)va_arg(ap, double);
-                    Conv_Float((float)valorARGd,3,conversion);
-                    conteo+=LCD1602_Cadena(conversion,columna,fila)-1;
-                    break;
-
-
-
-
-                case 'c': //"%c"
+              case 'c': //"%c"
                     valorARGi=(unsigned char)va_arg(ap, unsigned char);
                     LCD1602_Char(valorARGi);//manda el caracter a la LCD
-                    (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
-                    if(((*columna)&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
-                    {
-                        (*columna)=0;
-                        (*fila)++; //aumenta en uno la fila
-                        LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
-                    }
+                     LCD1602_Limites(columna,fila);
+                    break;
+                case 'p': //"%p"
+                    valorARGi=(unsigned long)va_arg(ap, void*);
+                    Conv_Hex(valorARGi,conversion);
+                    conteo+=LCD1602_Cadena(conversion,columna,fila)-1;
                     break;
                 case 's':// "%s"
                     valorARGc=(char*)va_arg(ap,char*);  //el siguiente argumento es un puntero
                     conteo+=LCD1602_Print(valorARGc,columna,fila)-1;//imprime la cadena del puntero
                     break;
+                case 'F':
+                   case 'f': //"%f"
+                       valorARGd=(double)va_arg(ap, double);
+                       Conv_Float((float)valorARGd,3,conversion);
+                       conteo+=LCD1602_Cadena(conversion,columna,fila)-1;
+                       break;
                 case 'l'://"%lf" "%8.4lf" "%5.3f" "%l"
                     cadena++; //aumenta en uno la posicion del string
                     if(*cadena=='f') //si es 'f' el sig caracter significa que vamos a convertir un double
@@ -814,36 +1192,23 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
                         cadena--; //si no encuentra la 'f' regresa a la 'l'
                 default:// "%p"
                     cadena--;//si no es ningun caso anterior regresa al '%'
-                    LCD1602_Dato(*cadena);
-                    (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
-                    if(((*columna)&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
-                    {
-                        (*columna)=0;
-                        (*fila)++; //invierte el valor e fila para que se reinciie
-                        LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
-                    }
-                    break;
-
+                case '%':
+                     LCD1602_Dato('%');
+                     LCD1602_Limites(columna,fila);
+                     break;
            }
             break;
-
-
-
         default :
             LCD1602_Char(*(cadena)); //envia el caracter correspondiente
-            (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
-            if((*columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
-            {
-                (*columna)=0;
-                (*fila)++; //invierte el valor e fila para que se reinciie
-                LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
-            }
+            LCD1602_Limites(columna,fila);
             break;
         }
         cadena++; //el puntero apunta al siguiente caracter
         conteo++; //suma 1 al conteo total de caracter enviados a la LCD
         if(salir) //si detecto un \e (escape) sale del ciclo while
             break;
+        LCD1602_Pos(*columna,*fila); //actualiza la posicion
+
     }
     va_end(ap); //reinicia el puntero
 

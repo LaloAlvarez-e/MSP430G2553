@@ -15,10 +15,14 @@
 void Conf_LCD1602(void);
 void LCD1602_Com(char comando);
 void LCD1602_Dato(char dato);
-
+char LCD1602_LDato();
+char LCD1602_LCom(unsigned char*columna,unsigned char*fila);
+void LCD1602_Busy();
+void LCD1602_Lectura(unsigned char columna,unsigned char fila,char cantidad,char* conv);
 
 void LCD1602_E(void);
-void LCD1602_Pos(char columna, char fila);
+void LCD1602_Pos(unsigned char columna, unsigned char fila);
+void LCD1602_Limites(unsigned char* columna, unsigned char* fila);
 int LCD1602_Cadena(char* cadena,unsigned char* columna, unsigned char* fila);
 void LCD1602_GC (const char* datos,char dir);
 
@@ -31,6 +35,7 @@ unsigned char Conv_Entero(long long numero,char* conv);
 unsigned char Conv_Hex(long long numero,char* conv);
 unsigned char Conv_HEX(long long numero,char* conv);
 unsigned char Conv_Oct(long long numero,char* conv);
+unsigned char Conv_Bin(long numero,char* conv);
 unsigned char Conv_Float(double numero,int decimales, char* conv);
 
 /*DEfinciones de Comando*/
@@ -74,29 +79,29 @@ unsigned char Conv_Float(double numero,int decimales, char* conv);
 #define M5_8_Font 0x20 //fuente 5x8
 #define M5_11_Font 0x24 //fuente 5x11 solo para 1 linea
 
-#define PUERTO_E  P1
-#define PUERTO_RS P1
+#define PUERTO_E  P2
+#define PUERTO_RS P2
 #define PUERTO_RW P1
 #define PUERTO_D4 P1
 #define PUERTO_D5 P1
-#define PUERTO_D6 P1
+#define PUERTO_D6 P2
 #define PUERTO_D7 P2
 
-#define E  BIT2
-#define RS BIT0
+#define E  BIT5
+#define RS BIT4
 #define RW BIT1
-#define D4 BIT3
-#define D5 BIT4
-#define D6 BIT5
-#define D7 BIT0
+#define D4 BIT5
+#define D5 BIT7
+#define D6 BIT1
+#define D7 BIT2
 
-#define E_POS  2
-#define RS_POS 0
+#define E_POS  5
+#define RS_POS 4
 #define RW_POS 1
-#define D4_POS 3
-#define D5_POS 4
-#define D6_POS 5
-#define D7_POS 0
+#define D4_POS 5
+#define D5_POS 7
+#define D6_POS 1
+#define D7_POS 2
 
 
 #define OUTp(p)    Out(p)
