@@ -18,7 +18,7 @@ int main(void)
 	//4 bits , 2 lineas, 5x8 puntos, incr cursor
 	Conf_LCD1602();//configuracion de la pantalla LCD1602
 	conteo=LCD1602_Printf("\t\t %s Printf Parte %c ",&columna,&fila,"InDevice\n\r",'3');
-	conteo+=LCD1602_Printf("%lf %q",&columna,&fila,(double)conteo);
+	conteo+=LCD1602_Printf("%x %q",&columna,&fila,conteo);
 
 
 	while(1);

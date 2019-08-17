@@ -786,9 +786,9 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
 
 
 
-                case 'c':
+                case 'c': //"%c"
                     valorARGi=(unsigned char)va_arg(ap, unsigned char);
-                    LCD1602_Dato(valorARGi);//manda el caracter a la LCD
+                    LCD1602_Char(valorARGi);//manda el caracter a la LCD
                     (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
                     if(((*columna)&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
                     {
@@ -797,11 +797,11 @@ unsigned char LCD1602_Printf(char* cadena,unsigned char* columna, unsigned char*
                         LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
                     }
                     break;
-                case 's':
+                case 's':// "%s"
                     valorARGc=(char*)va_arg(ap,char*);  //el siguiente argumento es un puntero
                     conteo+=LCD1602_Print(valorARGc,columna,fila)-1;//imprime la cadena del puntero
                     break;
-                case 'l':
+                case 'l'://"%lf" "%8.4lf" "%5.3f" "%l"
                     cadena++; //aumenta en uno la posicion del string
                     if(*cadena=='f') //si es 'f' el sig caracter significa que vamos a convertir un double
                     {
