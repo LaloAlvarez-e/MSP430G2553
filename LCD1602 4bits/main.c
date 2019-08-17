@@ -302,34 +302,52 @@ void LCD1602_Pos(char columna, char fila)
     LCD1602_Com(direccion);
 }
 
+
+
+int LCD1602_Cadena(unsigned char* cadena,unsigned char* columna, unsigned char* fila)
+{
+    int conteo=0;//variable usada para saber cuentos caracteres se imprimieron
+
+    //punteros
+    // cadena = contiene una direccion
+    //*cadena = apunta al valor de la direccion guardada en cadena
+    //cadena++ o cadena+=1 o cadena= cadena + 1, apunta a la sig direccion
+
+    //variables
+    //conteo= tiene guardado un valor
+    //&conteo = se obtiene la direccion donde se tiene guardado conteo
+
+
+    LCD1602_Pos(*columna,*fila); //indica la posicion inicial del cursor
+    while(*cadena)// realiza el ciclo minetras la cadena tenga algun valor
+        //el valor 0 o '\0' es fin de cadena
+    {
+        LCD1602_Dato(*(cadena)); //envia el caracter correspondiente
+        (*columna)++; //suma 1 a la columna indicando que se ha escrito un valor
+        if((*columna&0xF)==0) //si la columna es 0 indica que empieza una nueva fila
+        {
+            *fila^=1; //invierte el valor e fila para que se reinciie
+            LCD1602_Pos(*columna,*fila); //pone el cursor en 0,x
+        }
+
+        cadena++; //el puntero apunta al siguiente caracter
+        conteo++; //suma 1 al conteo total de caracter enviados a la LCD
+    }
+    return conteo;
+}
+
 /**
  * main.c
  */
 void main(void)
 {
-       WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
-       Conf_Reloj(); //conf de reloj 16 MHz, SMCLK y MCLK
-       //4 bits , 2 lineas, 5x8 puntos, incr cursor
-       Conf_LCD1602();//configuracion de la pantalla LCD1602
-       LCD1602_Pos(3,0);
-       LCD1602_Dato('H');
-       LCD1602_Dato('O');
-       LCD1602_Dato('L');
-       LCD1602_Dato('A');
-       LCD1602_Dato(' ');
-       LCD1602_Dato('M');
-       LCD1602_Dato('U');
-       LCD1602_Dato('N');
-       LCD1602_Dato('D');
-       LCD1602_Dato('O');
-       LCD1602_Pos(4,1);
-       LCD1602_Dato('I'); //escribe H en 0,0. Cursor 0,1
-       LCD1602_Dato('n');
-       LCD1602_Dato('D'); //escribe H en 0,0. Cursor 0,1
-       LCD1602_Dato('e');
-       LCD1602_Dato('v');
-       LCD1602_Dato('i');
-       LCD1602_Dato('c');
-       LCD1602_Dato('e');
-       while(1);
+    unsigned char fila=0,columna=0;
+    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
+    Conf_Reloj(); //conf de reloj 16 MHz, SMCLK y MCLK
+    //4 bits , 2 lineas, 5x8 puntos, incr cursor
+    Conf_LCD1602();//configuracion de la pantalla LCD1602
+    //LCD1602_Print(" Funcion  Print     InDevice",0,0);
+    LCD1602_Cadena("Funcion M.Cadena    InDevice",&columna,&fila);
+    while(1);
 }
+

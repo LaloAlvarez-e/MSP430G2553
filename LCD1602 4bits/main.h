@@ -1,7 +1,7 @@
 /*
  * main.h
  *
- *  Created on: 23/08/2017
+ *  Created on: 24/08/2017
  *      Author: Lalo
  */
 
@@ -9,7 +9,7 @@
 #define MAIN_H_
 
 #include "msp430g2553.h"
-
+#include <stdarg.h>
 
 void Conf_Reloj(void);
 void Conf_LCD1602(void);
@@ -17,6 +17,8 @@ void LCD1602_Com(char comando);
 void LCD1602_Dato(char dato);
 void LCD1602_E(void);
 void LCD1602_Pos(char columna, char fila);
+int LCD1602_Cadena(unsigned char* cadena,unsigned char* columna, unsigned char* fila);
+
 
 /*DEfinciones de Comando*/
 #define CLEAR 0x1 //limpia la pantalla
@@ -56,29 +58,29 @@ void LCD1602_Pos(char columna, char fila);
 #define M5_8_Font 0x20 //fuente 5x8
 #define M5_11_Font 0x24 //fuente 5x11 solo para 1 linea
 
-#define PUERTO_E  P1
-#define PUERTO_RS P1
+#define PUERTO_E  P2
+#define PUERTO_RS P2
 #define PUERTO_RW P1
 #define PUERTO_D4 P1
 #define PUERTO_D5 P1
-#define PUERTO_D6 P1
-#define PUERTO_D7 P1
+#define PUERTO_D6 P2
+#define PUERTO_D7 P2
 
-#define E  BIT2
-#define RS BIT0
+#define E  BIT5
+#define RS BIT4
 #define RW BIT1
-#define D4 BIT7
-#define D5 BIT4
-#define D6 BIT5
-#define D7 BIT6
+#define D4 BIT5
+#define D5 BIT7
+#define D6 BIT1
+#define D7 BIT2
 
-#define E_POS  2
-#define RS_POS 0
+#define E_POS  5
+#define RS_POS 4
 #define RW_POS 1
-#define D4_POS 7
-#define D5_POS 4
-#define D6_POS 5
-#define D7_POS 6
+#define D4_POS 5
+#define D5_POS 7
+#define D6_POS 1
+#define D7_POS 2
 
 
 #define OUTp(p)    Out(p)
