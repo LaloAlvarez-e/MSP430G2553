@@ -9,6 +9,18 @@
 #include "uart.h"
 
 
+uint8_t Uart_u8TxBuffer[UART_TXMAX]={0};
+volatile uint8_t* Uart_pu8PutTx=&Uart_u8TxBuffer[0];
+volatile uint8_t* Uart_pu8GetTx=&Uart_u8TxBuffer[0];
+int8_t  Uart_s8TxCounter=0;
+int8_t  Uart_s8TxInit=0;
+
+
+uint8_t Uart_u8RxBuffer[UART_RXMAX]={0};
+volatile uint8_t* Uart_pu8PutRx=&Uart_u8RxBuffer[0];
+volatile uint8_t* Uart_pu8GetRx=&Uart_u8RxBuffer[0];
+int8_t  Uart_s8RxCounter=0;
+
 /***
  * Inicializacion del Periferico UART,
  * Se tiene contemplado el reloj del micro a 16MHz
@@ -69,7 +81,7 @@ void Uart_vInit(int32_t s32BaudRate)
      * manual de usuario pag 422
      */
     u16BaudRateReg= (uint16_t)fBaudRateDecimal; // se obtiene la parete entera de la divison
-    if(u16BaudRateReg>16)
+    if(u16BaudRateReg>32)
     {
         fBaudRateDecimal/=16;
         u16BaudRateReg= (uint16_t)fBaudRateDecimal;
@@ -90,7 +102,7 @@ void Uart_vInit(int32_t s32BaudRate)
         *((uint16_t*)&UCA0BR0) =u16BaudRateReg; //se le asigna la parte entera al registro encargado del Baud Rate
         fModulator=(fBaudRateDecimal*8.0)+0.5; // se codifica la parte fraccionaria de la division
         u8ModulatorCounter0=(uint8_t)fModulator;
-        UCA0MCTL=u8ModulatorCounter0; // se ingresa el valor obtenido
+        UCA0MCTL=u8ModulatorCounter0<<1; // se ingresa el valor obtenido
     }
 
 
@@ -105,7 +117,7 @@ void Uart_vInit(int32_t s32BaudRate)
      */
     /* Configuración final para Uart0 Control (UC0CTL0)
      * UCMODE=00 (UART), UCSYNC=0 (UART mode,Asincorno), UCMSB=1 (Bit mas significativo primero)
-     * UC7BIT=0 (8 bits de datos) UCSPB=0 (1 bit de Stop) UCPAR=0 (paridad no importa) UCPEN=0 (paridad deshabilitada)
+     * UC7BIT=0 (8 bits de datos) UCSPB=0 (1 bit de Stop) UCPAR=0 (paridad no importa) UCPEN=1 (paridad deshabilitada)
      */
     u8Reg=0;
     UCA0CTL0=u8Reg;
@@ -123,82 +135,101 @@ void Uart_vInit(int32_t s32BaudRate)
     u8Reg=UCSSEL_2;
     UCA0CTL1=u8Reg;
 
-    UC0IE = 0;
-    IE2=0;
-
-    IFG2=UCA0TXIFG; //borrado de banderas de interrupcion
+    IFG2=0;
+    IE2=UCA0TXIE|UCA0RXIE;
+   // IFG2=UCA0TXIFG; //borrado de banderas de interrupcion
 
     //hasta este momento el modulo de UART esta e funcionamiento
 
 }
 
-
 uint8_t Uart_u8SendChar(char cDato)
 {
+    /*Buffer Full*/
+    if(Uart_s8TxCounter==(UART_TXMAX))
+           return 1;
+
     /*
      * si el buffer de salida o transmision no esta vacio regresa un error
-     */
+
     if((IFG2&UCA0TXIFG)==0)
         return 1;
-
-    UCA0TXBUF=cDato;
-    return 0;
-}
-
-
-uint8_t Uart_u8ReceiveChar(char* pcDato)
-{
-    /*
-     * si el buffer de entrada no tiene datos regresa un error
      */
-    if((IFG2&UCA0RXIFG)==0)
-        return 1;
 
-    *pcDato=UCA0RXBUF;
-    return 0;
-}
+    *Uart_pu8PutTx = cDato;
+    Uart_pu8PutTx++;
+    if(Uart_pu8PutTx==&Uart_u8TxBuffer[UART_TXMAX])
+        Uart_pu8PutTx=&Uart_u8TxBuffer[0];
 
-
-
-
-
-uint8_t Uart_u8SendCharUntilComplete(char cDato)
-{
-    uint16_t u16TimeOut=0xFFFF;
-
-    /*
-     * si el buffer de entrada o transmision no esta vacio regresa un error
-     */
-   // while(UCA0STAT&UCBUSY)
-    while((IFG2&UCA0TXIFG)==0)
+    Uart_s8TxCounter++;
+    if(Uart_s8TxInit==0)
     {
-        u16TimeOut--;
-        if(u16TimeOut==0)
-            return 2;
+        Uart_s8TxInit=1;
+        IFG2|=UCA0TXIFG;
     }
 
-    UCA0TXBUF=cDato;
-    /*
-     * Se espera hasta que se haya completado la trnasmision o ocurra algun error
-     */
-    u16TimeOut=0xFFFF;
-    //while(UCA0STAT&UCBUSY); //pueden ser usadas las 2 banderas
-    while((IFG2&UCA0TXIFG)==0)
+
+
+    //UCA0TXBUF=cDato;
+    return 0;
+}
+
+
+
+//uint8_t Uart_u8SendCharUntilComplete(char cDato)
+uint8_t Uart_u8SendCharUntilLoad(char cDato)
+{
+    uint32_t u32TimeOut=0xFF;
+
+    /*Buffer Full*/
+    while(Uart_s8TxCounter==(UART_TXMAX))
     {
-        u16TimeOut--;
-        if(u16TimeOut==0)
+        u32TimeOut--;
+        if(u32TimeOut==0x7F)
+        {
+            IFG2|=UCA0TXIFG;
+        }
+        if(u32TimeOut==0)
             return 1;
     }
+    /*
+     * si el buffer de salida o transmision no esta vacio regresa un error
+
+    if((IFG2&UCA0TXIFG)==0)
+        return 1;
+     */
+
+    *Uart_pu8PutTx = cDato;
+    Uart_pu8PutTx++;
+    if(Uart_pu8PutTx==&Uart_u8TxBuffer[UART_TXMAX])
+        Uart_pu8PutTx=Uart_u8TxBuffer;
+
+    Uart_s8TxCounter++;
+    if(Uart_s8TxInit==0)
+    {
+        Uart_s8TxInit=1;
+        IFG2|=UCA0TXIFG;
+    }
+
+
+
+    //UCA0TXBUF=cDato;
     return 0;
+
 }
 
-uint16_t Uart_u8SendString(char* pcDato)
+
+
+
+
+
+uint16_t Uart_u16SendString(char* pcDato)
 {
     uint16_t u16Contador=0;
     while(*pcDato)
     {
 
-        if(Uart_u8SendCharUntilComplete(*pcDato))
+        if(Uart_u8SendCharUntilLoad(*pcDato))
             return u16Contador;
         pcDato++;
         u16Contador++;
@@ -207,23 +238,120 @@ uint16_t Uart_u8SendString(char* pcDato)
 }
 
 
+
+uint16_t Uart_u16SendMultiByte(char* cByte, uint8_t u8Number)
+{
+    uint8_t u8Counter=0;
+    while (u8Counter!=u8Number)
+    {
+        if(Uart_u8SendChar(cByte[u8Counter]))
+            return u8Number-u8Counter;
+        u8Counter++;
+    }
+
+    return 0;
+}
+
+
+
+
+uint8_t Uart_u8ReceiveChar(char* pcDato)
+{
+    /*Buffer Empty*/
+    if(Uart_s8RxCounter==0)
+          return 1;
+    /*
+     * si el buffer de entrada no tiene datos regresa un error
+     */
+   /* if((IFG2&UCA0RXIFG)==0)
+        return 1;
+*/
+    Uart_s8RxCounter--;
+    *pcDato=*Uart_pu8GetRx;
+    Uart_pu8GetRx++;
+    if(Uart_pu8GetRx==&Uart_u8RxBuffer[UART_TXMAX])
+        Uart_pu8GetRx=Uart_u8RxBuffer;
+
+   // *pcDato=UCA0RXBUF;
+    return 0;
+}
+
+
+
 uint8_t Uart_u8UntilReceiveChar(char* pcDato)
 {
 
     uint32_t u32TimeOut=0xFFFFFF;
-    /*
-     * Espera hasta obtener un dato de recepcion
-     */
 
-    //while(UCA0STAT&UCBUSY);
-    while((IFG2&UCA0RXIFG)==0)
-    {
+    /*Buffer Empty*/
+    while(Uart_s8RxCounter==0)    {
         u32TimeOut--;
         if(u32TimeOut==0)
             return 1;
     }
+    /*
+     * si el buffer de entrada no tiene datos regresa un error
+     */
+   /* if((IFG2&UCA0RXIFG)==0)
+        return 1;
+*/
+    Uart_s8RxCounter--;
+    *pcDato=*Uart_pu8GetRx;
+    Uart_pu8GetRx++;
+    if(Uart_pu8GetRx==&Uart_u8RxBuffer[UART_TXMAX])
+        Uart_pu8GetRx=Uart_u8RxBuffer;
 
-    *pcDato=UCA0RXBUF;
+   // *pcDato=UCA0RXBUF;
     return 0;
 }
 
+
+uint16_t Uart_u16ReceiveMultiByte(char* cByte, uint8_t u8Number)
+{
+    uint8_t u8Counter=0;
+    while (u8Counter!=u8Number)
+    {
+        if(Uart_u8ReceiveChar(&cByte[u8Counter]))
+            return u8Number-u8Counter;
+        u8Counter++;
+    }
+    return 0;
+}
+
+#pragma vector = USCIAB0RX_VECTOR
+__interrupt void UARTRX_ISR(void)
+{
+    if(IFG2&UCA0RXIFG)
+    {
+        *Uart_pu8PutRx=UCA0RXBUF;
+        Uart_pu8PutRx++;
+        if(Uart_pu8PutRx==&Uart_u8RxBuffer[UART_RXMAX])
+            Uart_pu8PutRx=Uart_u8RxBuffer;
+        Uart_s8RxCounter++;
+    }
+}
+
+#pragma vector = USCIAB0TX_VECTOR
+__interrupt void UARTTX_ISR(void)
+{
+
+    if(IFG2&UCA0TXIFG)
+    {
+
+        if(Uart_s8TxCounter>0)
+         {
+
+            Uart_s8TxCounter--;
+             UCA0TXBUF=*Uart_pu8GetTx;
+             Uart_pu8GetTx++;
+             if(Uart_pu8GetTx==&Uart_u8TxBuffer[UART_TXMAX])
+                 Uart_pu8GetTx=&Uart_u8TxBuffer[0];
+
+         }
+        else
+        {
+            IFG2&=~UCA0TXIFG;
+            Uart_s8TxInit=0;
+        }
+    }
+}
