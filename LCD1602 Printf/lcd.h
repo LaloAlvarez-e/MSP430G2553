@@ -59,29 +59,29 @@ unsigned char Conv_Float(double numero,int decimales, char* conv);
 #define M5_8_Font 0x20 //fuente 5x8
 #define M5_11_Font 0x24 //fuente 5x11 solo para 1 linea
 
-#define PUERTO_E  P1
-#define PUERTO_RS P1
+#define PUERTO_E  P2
+#define PUERTO_RS P2
 #define PUERTO_RW P1
 #define PUERTO_D4 P1
 #define PUERTO_D5 P1
-#define PUERTO_D6 P1
+#define PUERTO_D6 P2
 #define PUERTO_D7 P2
 
-#define E  BIT2
-#define RS BIT0
+#define E  BIT5
+#define RS BIT4
 #define RW BIT1
-#define D4 BIT3
-#define D5 BIT4
-#define D6 BIT5
-#define D7 BIT0
+#define D4 BIT5
+#define D5 BIT7
+#define D6 BIT1
+#define D7 BIT2
 
-#define E_POS  2
-#define RS_POS 0
+#define E_POS  5
+#define RS_POS 4
 #define RW_POS 1
-#define D4_POS 3
-#define D5_POS 4
-#define D6_POS 5
-#define D7_POS 0
+#define D4_POS 5
+#define D5_POS 7
+#define D6_POS 1
+#define D7_POS 2
 
 
 #define OUTp(p)    Out(p)

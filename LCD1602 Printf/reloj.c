@@ -20,14 +20,12 @@ void Conf_Reloj(void)
     BCSCTL1&=~DIVA_3; //Division de ACLK/1;
 
     /*SEleccion de MCLK*/
-    BCSCTL2|=SELM_3;
-    //BCSCTL2&=~SELM_3; //MCLK=DCOCLK
+    BCSCTL2&=~SELM_3; //MCLK=DCOCLK
     /*Division de MCLK*/
     BCSCTL2&=~DIVM_3; //Division de MCLK/1;
 
     /*Seleccion de SMCLK*/
-    BCSCTL2|=SELS;
-    //BCSCTL2&=~SELS; // 0=DCOCLK 1=ACLK
+    BCSCTL2&=~SELS; // 0=DCOCLK 1=ACLK
     /*Division de SMCLK*/
     BCSCTL2&=~DIVS_3; //Division de SMCLK/1;
 }
