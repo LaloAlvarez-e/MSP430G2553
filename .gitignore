@@ -3,7 +3,7 @@
 /dvt/
 /RemoteSystemsTempFiles/
 
-/Debug/*
-/.settings/*
+**/Debug/*
+**/.settings/*
 
 
