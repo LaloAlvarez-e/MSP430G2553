@@ -23,7 +23,9 @@ int LCD1602_Cadena(char* cadena,unsigned char* columna, unsigned char* fila);
 void LCD1602_GC (const char* datos,char dir);
 
 void LCD1602_Char(char dato);
-unsigned char LCD1602_Printf(char* conv,unsigned char* columna, unsigned char* fila);
+unsigned char LCD1602_Print(char* conv,unsigned char* columna, unsigned char* fila);
+unsigned char LCD1602_Printf(char* conv,unsigned char* columna, unsigned char* fila,...);
+
 
 unsigned char Conv_Entero(long long numero,char* conv);
 unsigned char Conv_Hex(long long numero,char* conv);
