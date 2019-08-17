@@ -338,7 +338,7 @@ unsigned char Conv_Entero(long long numero, char* conv)
 
     do {
         punteroActual--;//se decrementa la posicion donse guardara el valor
-        num=numeroReg % 10; //obtiene el digito de mayor peso
+        num=numeroReg % 10; //obtiene el digito de menor peso
         //num1=abs(num);//un if es mas rapido que una multiplicacion por -1 si es negativo el valor
         *punteroActual = num  + '0'; //convierte el valor en caracter
     }  while((numeroReg /= 10)); //mientras exista un digito sigue el ciclo
@@ -388,3 +388,119 @@ unsigned char Conv_Float(double numero,int decimales,char* conv)
     valores+=Conv_Entero(deci, &conv[valores]);//convierte la parte decimal despues del punto
     return valores;//regresa la cantidad de digitos convertidos
 }
+
+
+const char HEXA[16]=
+{
+ '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+};
+
+const char hexa[16]=
+{
+ '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'
+};
+
+unsigned char Conv_Hex(long long numero, char* conv)
+{
+    char           convTemp[19]; //longitud maxima de long 16 digitos
+    register char *punteroActual;
+    register int num=0;
+    register char i=0;
+    register unsigned long long  numeroReg = (unsigned long long) numero;//paso el numero a un registro para aumentar rendimiento
+
+    punteroActual = &convTemp[19 - 1]; //empezamos llenando desde la ultima posicion
+    *punteroActual = 0; //guarda el fin de cadena en la ultima posicion
+
+    do {
+        punteroActual--;//se decrementa la posicion donse guardara el valor
+        num=numeroReg&0xF; //obtiene el digito de menor peso
+        *punteroActual = hexa[num]; //convierte el valor en caracter
+        numeroReg>>=1;
+        numeroReg>>=1;
+        numeroReg>>=1;
+        numeroReg>>=1;
+       // numeriReg>>=4;
+    }  while((numeroReg > 0)); //mientras exista un digito sigue el ciclo
+
+    punteroActual--;
+    *punteroActual = 'x';
+    punteroActual--;
+    *punteroActual = '0';
+    numeroReg=convTemp+19-punteroActual;//realiza la resta de cuantos caracteres se utilizaron
+    for (i = 0; i< numeroReg; i++) //hace un ciclo burbuja optimizado
+    {
+        ((unsigned char *)conv)[i] = ((const unsigned char *)punteroActual)[i];
+    }
+
+    return numeroReg - 1;
+}
+
+unsigned char Conv_HEX(long long numero, char* conv)
+{
+    char           convTemp[19]; //longitud maxima de long 16 digitos
+    register char *punteroActual;
+    register int num=0;
+    register char i=0;
+    register unsigned long long  numeroReg = (unsigned long long)numero;//paso el numero a un registro para aumentar rendimiento
+
+    punteroActual = &convTemp[19 - 1]; //empezamos llenando desde la ultima posicion
+    *punteroActual = 0; //guarda el fin de cadena en la ultima posicion
+
+    do {
+        punteroActual--;//se decrementa la posicion donse guardara el valor
+        num=numeroReg&0xF; //obtiene el digito de menor peso
+        *punteroActual = HEXA[num]; //convierte el valor en caracter
+        numeroReg>>=1;
+        numeroReg>>=1;
+        numeroReg>>=1;
+        numeroReg>>=1;
+    }  while((numeroReg > 0)); //mientras exista un digito sigue el ciclo
+
+    punteroActual--;
+    *punteroActual = 'X';
+    punteroActual--;
+    *punteroActual = '0';
+    numeroReg=convTemp+19-punteroActual;//realiza la resta de cuantos caracteres se utilizaron
+    for (i = 0; i< numeroReg; i++) //hace un ciclo burbuja optimizado
+    {
+        ((unsigned char *)conv)[i] = ((const unsigned char *)punteroActual)[i];
+    }
+
+    return numeroReg - 1;
+}
+
+
+unsigned char Conv_Oct(long long numero, char* conv)
+{
+    char           convTemp[24]; //longitud maxima de long 22 digitos
+    register char *punteroActual;
+    register int num=0;
+    register char i=0;
+    register unsigned long long  numeroReg = (unsigned long long)numero;//paso el numero a un registro para aumentar rendimiento
+
+    punteroActual = &convTemp[24 - 1]; //empezamos llenando desde la ultima posicion
+    *punteroActual = 0; //guarda el fin de cadena en la ultima posicion
+
+    do {
+        punteroActual--;//se decrementa la posicion donse guardara el valor
+        num=numeroReg&0x7; //obtiene el digito de menor peso
+        *punteroActual = num+'0'; //convierte el valor en caracter
+        numeroReg>>=1;
+        numeroReg>>=1;
+        numeroReg>>=1;
+    }  while((numeroReg > 0)); //mientras exista un digito sigue el ciclo
+
+
+    punteroActual--;
+    *punteroActual = '0';//si el numero es negativo guarda el signo negativo
+
+    numeroReg=convTemp+24-punteroActual;//realiza la resta de cuantos caracteres se utilizaron
+    for (i = 0; i< numeroReg; i++) //hace un ciclo burbuja optimizado
+    {
+        ((unsigned char *)conv)[i] = ((const unsigned char *)punteroActual)[i];
+    }
+
+    return numeroReg - 1;
+}
+
+

@@ -19,6 +19,9 @@ void LCD1602_E(void);
 void LCD1602_Pos(char columna, char fila);
 int LCD1602_Cadena(char* cadena,unsigned char* columna, unsigned char* fila);
 unsigned char Conv_Entero(long long numero,char* conv);
+unsigned char Conv_Hex(long long numero,char* conv);
+unsigned char Conv_HEX(long long numero,char* conv);
+unsigned char Conv_Oct(long long numero,char* conv);
 unsigned char Conv_Float(double numero,int decimales, char* conv);
 
 /*DEfinciones de Comando*/
