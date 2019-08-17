@@ -14,6 +14,6 @@ __interrupt void ADC_vIsr(void);
 
 
 extern uint16_t u16ValorADC;
-extern uint16_t u16flagADC;
+//extern uint16_t u16flagADC;
 
 #endif /* INTERRUPTS_H_ */

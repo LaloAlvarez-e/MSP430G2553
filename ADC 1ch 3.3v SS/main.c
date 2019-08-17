@@ -42,9 +42,10 @@ int main(void)
      *ISSH= 0 =no utilizado
      *ADC10DIVx= 0 = el reloj a utilizar es el ADC0SC , el valor ideal para el ADC 6.3MHz, por eso no requiere divisor
      *ADC10SSELx= 0 =ADC10OSC
-     *CONSEQx= 0; este ejemplo va a ser single channel single conversion
+     *CONSEQx= 2; este ejemplo va a ser single channel repite conversion
      */
-    ADC10CTL1=INCH_1; //reinicio todos los parametros del registro ADC10CTL1
+   // ADC10CTL1=INCH_1; //reinicio todos los parametros del registro ADC10CTL1
+    ADC10CTL1=INCH_1|CONSEQ_2; //reinicio todos los parametros del registro ADC10CTL1
 
 
 
@@ -62,7 +63,7 @@ int main(void)
      * ADC10SR = 0 ; ~200KHz = (13*ADC10DIV*(1/fADC10CLK))+6.349e-7  = (13*1*(1.58e-7)) +6.349e-7 =2.06e-6 +2.54e-6=4.60e-6 =217.4KHz
      * REFOUT =0 ; ref no es utilizado en este ejemplo
      * REFBURST=0; si ref es utilizado , este bit indica si el buffer se va adormir o siempre se mantiene activo se agregan 2us al sample time
-     * MSC=0    ; utilizado en muestras consecutivas , en este caso no es utilizado
+     * MSC=1    ; utilizado en muestras consecutivas , en este caso no es utilizado
      * REF2_5V=0; no utilizado, idnica si la referencia interna es 2.5v o 3.3v, si referencia interna es utilizada se agregan 30us de retraso
      * REFON=0; referencia interna no utilizada
      * ADC10ON=1; se activa el ADC10
@@ -71,7 +72,7 @@ int main(void)
      *
      */
 
-    ADC10CTL0|=ADC10SHT_2|ADC10ON|ADC10IE;
+    ADC10CTL0|=ADC10SHT_2|ADC10ON|ADC10IE|MSC;
 
 
 
@@ -81,14 +82,18 @@ int main(void)
     ADC10CTL0|=ENC;
 
     _EINT();
+
+    ADC10CTL0|=ADC10SC;
     while(1)
     {
+        /*
         if(u16flagADC==0)
         {
             u16flagADC=1;
             ADC10CTL0|=ADC10SC;
 
         }
+        */
         if(u16ValorADC>500)
         {
             P1OUT|=BIT6;
