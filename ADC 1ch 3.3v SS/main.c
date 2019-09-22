@@ -90,15 +90,9 @@ int main(void)
 
         }
         if(u16ValorADC>500)
-        {
             P1OUT|=BIT6;
-
-        }
         else
-        {
-
             P1OUT&=~BIT6;
-        }
 
     }
 }
