@@ -20,15 +20,15 @@ typedef enum
     SysTick_enERROR = 1,
 }SysTick_nStatus;
 
-SysTick_nStatus SysTick__enInitUs(float fTimeUs);
-void SysTick__vRestart(void);
-float SysTick__fGetTimeUs(void);
-float SysTick__fGetFrec(void);
-uint64_t SysTick__u64GetCount(void);
-uint32_t SysTick__u32GetCountMax(void);
-uint32_t SysTick__u32GetCountOv(void);
+SysTick_nStatus SysTick__enInitUs(uint16_t u16TimeUs);
+__inline void SysTick__vRestart(void);
+__inline uint32_t SysTick__u32GetTimeUs(void);
+__inline float SysTick__fGetFrec(void);
+__inline uint32_t SysTick__u32GetCount(void);
+__inline uint32_t SysTick__u32GetCountMax(void);
+__inline uint16_t SysTick__u16GetCountOv(void);
 
 
-__inline volatile void SysTick__vDelayUs(float fTimeUs);
+__inline volatile void SysTick__vDelayUs(uint32_t u32TimeUs);
 
 #endif /* DRIVER_TIMERA_H_ */

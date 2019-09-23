@@ -7,44 +7,43 @@
 
 #include "TimerA.h"
 
-uint32_t SysTick_u32CountOv=0;
-uint32_t SysTick_u32Count=0;
-float SysTick_fUsTick=0;
-float SysTick_fFrecTick=0;
+uint16_t SysTick_u16CountOv=0;
+uint16_t SysTick_u16Count=0;
+uint16_t SysTick_u16UsTick=0;
+uint32_t SysTick_u32FrecTick=0;
 uint16_t SysTick_u16CountTick=0;
 
 
-SysTick_nStatus SysTick__enInitUs(float fTimeUs)
+SysTick_nStatus SysTick__enInitUs(uint16_t u16TimeUs)
 {
-    uint32_t u32CPUFrec=0;
-    uint32_t u32Count=0;
-    float fCPUFrec=0,fCount=0;
+    uint8_t u8Div=0;
+    uint32_t u32Count=(uint32_t)((uint32_t)16*(uint32_t)u16TimeUs);//PLL__u32GetSysClockFreq();
 
-    u32CPUFrec=16000000u;//PLL__u32GetSysClockFreq();
-    fCPUFrec=(float)u32CPUFrec;
-    fCPUFrec/=1000000;
-    fCount=fCPUFrec*fTimeUs;
-    u32Count=(uint32_t)fCount;
-    u32Count>>=3;
-    if(u32Count>0x10000)
+
+    while (u32Count>0x10000)
     {
-        SysTick_fFrecTick=0;
-        SysTick_fUsTick=0;
-        return SysTick_enERROR;
-    }
-    if(u32Count<100)
-    {
-        SysTick_fFrecTick=0;
-        SysTick_fUsTick=0;
-        return SysTick_enERROR;
+        if(u8Div>3)
+        {
+            SysTick_u32FrecTick=0;
+            SysTick_u16UsTick=0;
+            return SysTick_enERROR;
+        }
+
+        u8Div++;
+        u32Count>>=1;
     }
 
+    if(u32Count<(64>>u8Div))
+    {
+        SysTick_u32FrecTick=0;
+        SysTick_u16UsTick=0;
+        return SysTick_enERROR;
+    }
 
-    SysTick_u32Count=0;
+    SysTick_u16Count=0;
 
-    SysTick_fFrecTick=1000000.0;
-    SysTick_fFrecTick/=fTimeUs;
-    SysTick_fUsTick=fTimeUs;
+    SysTick_u32FrecTick=(1000000/u16TimeUs);
+    SysTick_u16UsTick=u16TimeUs;
     SysTick_u16CountTick=u32Count;
 
 
@@ -56,80 +55,78 @@ SysTick_nStatus SysTick__enInitUs(float fTimeUs)
     TA1R=0;
     /*
      * TASSEL = SMCLK
-     * ID = /8
+     * ID = u8Div
      * MC = Up yo TA1CCR0
      * TAIE = enabled
      *
      */
-    TA1CTL=TASSEL_2| ID_3 |MC_1 |TAIE ;
+    TA1CTL=TASSEL_2| (u8Div<<6) |MC_1 |TAIE ;
 
     return SysTick_enOK;
 }
 
-void SysTick__vRestart(void)
+__inline void SysTick__vRestart(void)
 {
-    SysTick_u32Count=0;
+    SysTick_u16Count=0;
 }
 
 
-float SysTick__fGetTimeUs(void)
+__inline uint32_t SysTick__u32GetTimeUs(void)
 {
-    return (float)SysTick_u32Count*SysTick_fUsTick;
+    return (uint32_t)SysTick_u16Count*SysTick_u16UsTick;
 }
 
-float SysTick__fGetFrec(void)
+__inline float SysTick__fGetFrec(void)
 {
-    return SysTick_fFrecTick/(float)SysTick_u32Count;
-}
-
-
-uint64_t SysTick__u64GetCount(void)
-{
-    return (uint64_t)SysTick_u16CountTick*(uint64_t)SysTick_u32Count;
-}
-uint32_t SysTick__u32GetCountOv(void)
-{
-    return (uint32_t)SysTick_u32CountOv;
-}
-uint32_t SysTick__u32GetCountMax(void)
-{
-    return (uint32_t)SysTick_u16CountTick*(uint32_t)0xFFFF;
+    return SysTick_u32FrecTick/(float)SysTick_u16Count;
 }
 
 
-__inline volatile void SysTick__vDelayUs(float fTimeUs)
+__inline uint32_t SysTick__u32GetCount(void)
 {
-    uint64_t u64Count=0;
+    return (uint32_t)SysTick_u16CountTick*SysTick_u16Count;
+}
+__inline uint16_t SysTick__u16GetCountOv(void)
+{
+    return (uint16_t)SysTick_u16CountOv;
+}
+__inline uint32_t SysTick__u32GetCountMax(void)
+{
+    return (uint32_t)SysTick_u16CountTick*0xFFFF;
+}
+
+__inline volatile void SysTick__vDelayUs(uint32_t u32TimeUs)
+{
     uint64_t u64Dif=0;
     uint64_t u64DifOv=0;
 
     uint32_t u32Max=SysTick__u32GetCountMax();
-    float fCount= fTimeUs/SysTick_fUsTick;
-    fCount*= (float)SysTick_u16CountTick;
-    u64Count= (uint64_t)fCount;
+    uint64_t u64Count= (uint64_t)((uint64_t)u32TimeUs*(uint64_t)SysTick_u16CountTick);
+
+    u64Count/=(uint64_t)SysTick_u16UsTick;
 
 
     uint64_t u64ActualUs=0;
-    uint64_t u64TempUs=0;
-    uint32_t u32TempOv=0;
+    uint32_t u32TempUs=0;
+    uint16_t u16TempOv=0;
 
-    uint64_t u64AnteriorUs=SysTick__u64GetCount();
-    uint64_t u64AnteriorOv=SysTick__u32GetCountOv();
+    uint32_t u32AnteriorUs=SysTick__u32GetCount();
+    uint16_t u16AnteriorOv=SysTick__u16GetCountOv();
     while((uint64_t)u64Count>(uint64_t)u64ActualUs)
     {
-        u32TempOv=SysTick__u32GetCountOv();
-        u64DifOv=u32TempOv-u64AnteriorOv;
-        u64AnteriorOv=u32TempOv;
+        u16TempOv=SysTick__u16GetCountOv();
+        u64DifOv=u16TempOv-u16AnteriorOv;
+        u16AnteriorOv=u16TempOv;
 
-        u64TempUs=SysTick__u64GetCount();
-        u64Dif=(u64TempUs-u64AnteriorUs);
+        u32TempUs=SysTick__u32GetCount();
+        u64Dif=(u32TempUs-u32AnteriorUs);
 
         if(u64DifOv>0){
             u64DifOv*=u32Max;
             u64Dif+=u64DifOv;
 
         }
-        u64AnteriorUs=u64TempUs;
+        u32AnteriorUs=u32TempUs;
         u64ActualUs+=u64Dif;
     }
 }
@@ -141,9 +138,9 @@ __interrupt void Systick_ISR(void)
     switch(TA1IV)
     {
     case TA1IV_TAIFG:
-        SysTick_u32Count++;
-        if(SysTick_u32Count==0)
-            SysTick_u32CountOv++;
+        SysTick_u16Count++;
+        if(SysTick_u16Count==0)
+            SysTick_u16CountOv++;
        break;
     default:
         while(1);
