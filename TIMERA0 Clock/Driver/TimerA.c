@@ -44,7 +44,7 @@ SysTick_nStatus SysTick__enInitUs(uint16_t u16TimeUs)
 
     SysTick_u32FrecTick=(1000000/u16TimeUs);
     SysTick_u16UsTick=u16TimeUs;
-    SysTick_u16CountTick=u32Count;
+    SysTick_u16CountTick=u32Count-1;
 
 
 
